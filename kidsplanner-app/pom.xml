@@ -153,6 +153,10 @@
 					<includes>
 						<include>**/*Test.java</include>
 					</includes>
+					<!-- Redirected stdin in tests must use text mode (not Windows jar-style menu mode) -->
+					<systemPropertyVariables>
+						<kidsplanner.text.mode>true</kidsplanner.text.mode>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 			

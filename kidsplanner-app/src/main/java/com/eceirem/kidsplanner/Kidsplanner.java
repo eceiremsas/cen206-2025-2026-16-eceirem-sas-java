@@ -35,6 +35,13 @@ import java.util.Scanner;
 */
 public class Kidsplanner {
 
+  /**
+   * Interactive menus when a real console is expected. {@code java -jar} from Windows {@code .bat}
+   * often yields {@code System.console() == null} even though the user has a console; on Windows we
+   * still enable menu mode unless {@value #PROP_TEXT_MODE} is {@code true} (set by Surefire for tests).
+   */
+  public static final String PROP_TEXT_MODE = "kidsplanner.text.mode";
+
   /** Non-null only in text (CI / piped) mode — do not use with raw {@link System#in} when menus run. */
   private final Scanner scanner;
   /** Shared with {@link ConsoleUi} in menu mode so {@link Scanner} buffering does not steal keys from menus. */
@@ -43,8 +50,23 @@ public class Kidsplanner {
   private IRepository<Kid> kidRepository;
   private IRepository<Activity> activityRepository;
 
+  /**
+   * @return {@code false} when {@link #PROP_TEXT_MODE} is {@code true}; else {@code true} if
+   *         {@link System#console()} is non-null, or on Windows (jar/bat console without Console API).
+   */
+  static boolean detectMenuMode() {
+    if ("true".equals(System.getProperty(PROP_TEXT_MODE))) {
+      return false;
+    }
+    if (System.console() != null) {
+      return true;
+    }
+    String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+    return os.contains("win");
+  }
+
   public Kidsplanner() {
-    boolean mm = System.console() != null;
+    boolean mm = detectMenuMode();
     if (mm) {
       this.menuStdin = new PushbackInputStream(System.in, 64);
       this.scanner = null;
@@ -249,6 +271,9 @@ public class Kidsplanner {
 
   private void addActivityInteractiveMenu() throws IOException {
     int kidId = pickKidIdForMenu();
+    if (kidId < 0) {
+      return;
+    }
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Yeni Aktivite");
@@ -277,9 +302,12 @@ public class Kidsplanner {
     for (Kid kid : kids) {
       labels.add(kid.getId() + " - " + kid.getDisplayName());
     }
+    labels.add("Geri (aktivite menusune don)");
     labels.add("+ Yeni cocuk");
     int idx = ConsoleUi.readMenuChoice(menuStdin, System.out, "Cocuk secin", labels, menuStatusLine());
-    if (idx == labels.size() - 1) {
+    int idxGeri = labels.size() - 2;
+    int idxYeni = labels.size() - 1;
+    if (idx == idxYeni) {
       addKidInteractive();
       List<Kid> refreshed = kidRepository.findAll();
       Kid newest = Collections.max(refreshed, new Comparator<Kid>() {
@@ -289,6 +317,9 @@ public class Kidsplanner {
         }
       });
       return newest.getId();
+    }
+    if (idx == idxGeri) {
+      return -1;
     }
     return kids.get(idx).getId();
   }
