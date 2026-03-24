@@ -140,11 +140,14 @@ public final class ConsoleUi {
         out.println("  " + DIM + statusLine + RESET);
         out.println();
       }
-      out.println("  " + DIM + "Ok asagi/yukari \u00b7 Tab: sonraki \u00b7 Home/End \u00b7 W/S: yedek \u00b7 Enter: sec" + RESET);
+      out.println("  " + DIM + "Ok yukari/asagi \u00b7 Tab \u00b7 Home/End \u00b7 W/S (yedek) \u00b7 Enter: sec" + RESET);
+      out.println("  " + DIM + "Windows cmd: ok bazen W/S; Windows Terminal onerilir." + RESET);
       out.println("  " + DIM + "Cikis: son satiri secin veya Q" + RESET);
       out.flush();
 
-      int read = readUtf8Byte(in, buffer);
+      // Do not use readUtf8Byte for the first byte: on Windows, arrow keys send 0xE0 (same as UTF-8 lead)
+      // for extended scan codes, which must be handled before UTF-8 decoding.
+      int read = in.read();
       if (read == -1) {
         return options.size() - 1;
       }
@@ -170,22 +173,42 @@ public final class ConsoleUi {
         index = (index + 1) % options.size();
         continue;
       }
+      // Windows conhost (classic cmd, VT off): prefix 0x00 or 0xE0 + virtual-key scan code
+      if (read == 0 || read == 224) {
+        int scan = in.read();
+        if (scan == -1) {
+          continue;
+        }
+        int nav = windowsScanToNav(scan);
+        if (nav != NAV_NONE) {
+          index = applyNav(nav, index, options.size());
+          continue;
+        }
+        if (in instanceof PushbackInputStream) {
+          PushbackInputStream pin = (PushbackInputStream) in;
+          pin.unread(scan);
+          pin.unread(read);
+        }
+        read = readUtf8Byte(in, buffer);
+        if (read == -1) {
+          return options.size() - 1;
+        }
+        continue;
+      }
+      if (read >= 0x80) {
+        if (in instanceof PushbackInputStream) {
+          ((PushbackInputStream) in).unread(read);
+        }
+        readUtf8Byte(in, buffer);
+        continue;
+      }
       if (read == 27) {
         int nav = readAnsiNavigation(in);
-        if (nav == NAV_UP) {
-          index = (index - 1 + options.size()) % options.size();
-        } else if (nav == NAV_DOWN) {
-          index = (index + 1) % options.size();
-        } else if (nav == NAV_HOME) {
-          index = 0;
-        } else if (nav == NAV_END) {
-          index = options.size() - 1;
-        } else if (nav == NAV_PGUP) {
-          index = Math.max(0, index - 3);
-        } else if (nav == NAV_PGDN) {
-          index = Math.min(options.size() - 1, index + 3);
-        } else if (nav == NAV_QUIT) {
+        if (nav == NAV_QUIT) {
           return options.size() - 1;
+        }
+        if (nav != NAV_NONE) {
+          index = applyNav(nav, index, options.size());
         }
         continue;
       }
@@ -380,6 +403,52 @@ public final class ConsoleUi {
   private static final int NAV_PGDN = 6;
   private static final int NAV_QUIT = 7;
 
+  /** Windows ReadConsole scan codes after 0x00 / 0xE0 prefix (arrow keys, etc.). */
+  private static int windowsScanToNav(int scan) {
+    switch (scan) {
+      case 72:
+        return NAV_UP;
+      case 80:
+        return NAV_DOWN;
+      case 75:
+        return NAV_NONE;
+      case 77:
+        return NAV_NONE;
+      case 71:
+        return NAV_HOME;
+      case 79:
+        return NAV_END;
+      case 73:
+        return NAV_PGUP;
+      case 81:
+        return NAV_PGDN;
+      default:
+        return NAV_NONE;
+    }
+  }
+
+  private static int applyNav(int nav, int index, int size) {
+    if (nav == NAV_UP) {
+      return (index - 1 + size) % size;
+    }
+    if (nav == NAV_DOWN) {
+      return (index + 1) % size;
+    }
+    if (nav == NAV_HOME) {
+      return 0;
+    }
+    if (nav == NAV_END) {
+      return size - 1;
+    }
+    if (nav == NAV_PGUP) {
+      return Math.max(0, index - 3);
+    }
+    if (nav == NAV_PGDN) {
+      return Math.min(size - 1, index + 3);
+    }
+    return index;
+  }
+
   /**
    * After leading ESC (27), interprets the rest of an ANSI navigation sequence.
    */
@@ -390,6 +459,23 @@ public final class ConsoleUi {
     }
     if (second == 'q' || second == 'Q') {
       return NAV_QUIT;
+    }
+    // SS3 cursor keys: ESC O A / ESC O B (some terminals)
+    if (second == 'O') {
+      int third = in.read();
+      if (third == 'A') {
+        return NAV_UP;
+      }
+      if (third == 'B') {
+        return NAV_DOWN;
+      }
+      if (third == 'H') {
+        return NAV_HOME;
+      }
+      if (third == 'F') {
+        return NAV_END;
+      }
+      return NAV_NONE;
     }
     if (second != '[') {
       return NAV_NONE;
