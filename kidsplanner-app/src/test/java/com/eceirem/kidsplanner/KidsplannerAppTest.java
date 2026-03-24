@@ -36,6 +36,9 @@ public class KidsplannerAppTest {
   @AfterEach
   public void cleanupFile() throws java.io.IOException {
     Files.deleteIfExists(Paths.get("kidsplanner-activities.bin"));
+    Files.deleteIfExists(Paths.get("kidsplanner-kids.bin"));
+    Files.deleteIfExists(Paths.get("kidsplanner-consent.flag"));
+    Files.deleteIfExists(Paths.get("kidsplanner.db"));
   }
 
   /**

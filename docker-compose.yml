@@ -1,0 +1,12 @@
+# MySQL for Kids Activity Planner (midterm JDBC backend).
+# Run from repo root: docker compose up -d
+services:
+  db:
+    image: mysql:8.0
+    container_name: kidsplanner-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: kidsplanner
+      MYSQL_DATABASE: kidsplanner
+    ports:
+      - "3306:3306"
+    command: ["--default-authentication-plugin=mysql_native_password", "--character-set-server=utf8mb4"]

@@ -241,7 +241,8 @@ public class BinaryRepositoryTest {
         LocalTime.of(endHour, 0),
         ActivityType.STUDY,
         "Home",
-        "Notes");
+        "Notes",
+        Integer.valueOf(1));
   }
 
   private void cleanup(String path) {

@@ -36,6 +36,9 @@ public class KidsplannerTest {
   @AfterEach
   public void cleanupStore() throws java.io.IOException {
     Files.deleteIfExists(Paths.get("kidsplanner-activities.bin"));
+    Files.deleteIfExists(Paths.get("kidsplanner-kids.bin"));
+    Files.deleteIfExists(Paths.get("kidsplanner-consent.flag"));
+    Files.deleteIfExists(Paths.get("kidsplanner.db"));
   }
 
   /**
@@ -99,7 +102,7 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunAddThenListShowsCreatedActivity() throws java.io.IOException {
-    String input = "add\nMath\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\nlist\nexit\n";
+    String input = "add\n\nMath\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Aktivite eklendi"));
     assertTrue(output.contains("title='Math'"));
@@ -116,8 +119,8 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunListWithMultipleActivitiesTriggersSortingComparator() throws java.io.IOException {
-    String input = "add\nSecond\n2026-03-25\n11:00\n12:00\nSTUDY\nHome\nNote\n"
-        + "add\nFirst\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
+    String input = "add\n\nSecond\n2026-03-25\n11:00\n12:00\nSTUDY\nHome\nNote\n"
+        + "add\n\nFirst\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("--- Aktivite Listesi ---"));
     assertInOrder(output, "title='First'", "title='Second'");
@@ -132,8 +135,8 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunListWithDifferentDatesTriggersDateComparison() throws java.io.IOException {
-    String input = "add\nA\n2026-03-26\n09:00\n10:00\nSTUDY\nHome\nNote\n"
-        + "add\nB\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
+    String input = "add\n\nA\n2026-03-26\n09:00\n10:00\nSTUDY\nHome\nNote\n"
+        + "add\n\nB\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("--- Aktivite Listesi ---"));
     assertInOrder(output, "title='B'", "title='A'");
@@ -148,7 +151,7 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunAddWithInvalidDateShowsValidationError() throws java.io.IOException {
-    String input = "add\nMath\nbad-date\n09:00\n10:00\nSTUDY\nHome\nNote\nexit\n";
+    String input = "add\n\nMath\nbad-date\n09:00\n10:00\nSTUDY\nHome\nNote\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Tarih/saat formati gecersiz"));
   }
@@ -162,8 +165,8 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunAddWithOverlapShowsValidationError() throws java.io.IOException {
-    String input = "add\nFirst\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
-        + "add\nSecond\n2026-03-25\n09:30\n10:30\nPLAY\nPark\nn2\nexit\n";
+    String input = "add\n\nFirst\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
+        + "add\n\nSecond\n2026-03-25\n09:30\n10:30\nPLAY\nPark\nn2\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Ayni gunde saat cakismasi var"));
   }
@@ -190,8 +193,8 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunUpdateWithExistingIdUpdatesActivity() throws java.io.IOException {
-    String input = "add\nOld\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
-        + "update\n1\nNew\n2026-03-25\n10:30\n11:30\nPLAY\nPark\nn2\nlist\nexit\n";
+    String input = "add\n\nOld\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
+        + "update\n1\n\nNew\n2026-03-25\n10:30\n11:30\nPLAY\nPark\nn2\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Aktivite guncellendi."));
     assertTrue(output.contains("title='New'"));
@@ -209,8 +212,8 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunUpdateWithBlankInputsKeepsExistingValues() throws java.io.IOException {
-    String input = "add\nOriginal\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
-        + "update\n1\n\n\n\n\n\n\n\nlist\nexit\n";
+    String input = "add\n\nOriginal\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
+        + "update\n1\n\n\n\n\n\n\n\n\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("title='Original'"));
     assertTrue(output.contains("date=2026-03-25"));
@@ -242,7 +245,7 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunDeleteExistingIdRemovesActivityFromList() throws java.io.IOException {
-    String input = "add\nMath\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\n"
+    String input = "add\n\nMath\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\n"
         + "delete\n1\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("(kayit yok)"));
@@ -270,7 +273,7 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunAddWithInvalidTypeShowsValidationError() throws java.io.IOException {
-    String input = "add\nMath\n2026-03-25\n09:00\n10:00\nUNKNOWN\nHome\nNote\nexit\n";
+    String input = "add\n\nMath\n2026-03-25\n09:00\n10:00\nUNKNOWN\nHome\nNote\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Aktivite tipi gecersiz"));
   }
@@ -284,7 +287,7 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunAddWithEmptyTitleShowsValidationError() throws java.io.IOException {
-    String input = "add\n\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\nexit\n";
+    String input = "add\n\n\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Baslik bos olamaz"));
   }
@@ -298,7 +301,7 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunAddWithInvalidTimeOrderShowsValidationError() throws java.io.IOException {
-    String input = "add\nMath\n2026-03-25\n10:00\n10:00\nSTUDY\nHome\nNote\nexit\n";
+    String input = "add\n\nMath\n2026-03-25\n10:00\n10:00\nSTUDY\nHome\nNote\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Baslangic saati, bitis saatinden once olmali"));
   }
@@ -312,8 +315,8 @@ public class KidsplannerTest {
    */
   @Test
   public void testRunAddWithBoundaryTimesDoesNotTriggerOverlap() throws java.io.IOException {
-    String input = "add\nFirst\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
-        + "add\nSecond\n2026-03-25\n10:00\n11:00\nPLAY\nPark\nn2\nlist\nexit\n";
+    String input = "add\n\nFirst\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
+        + "add\n\nSecond\n2026-03-25\n10:00\n11:00\nPLAY\nPark\nn2\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("title='Second'"));
   }

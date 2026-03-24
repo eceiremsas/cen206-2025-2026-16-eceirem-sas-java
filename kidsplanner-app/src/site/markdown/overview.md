@@ -1,22 +1,27 @@
-# My Project
+# Kids Activity Planner (CEN206 Midterm)
 
-Welcome to my project! This project is designed to [describe the purpose and goals of your project].
+Kids Activity Planner is a Java **console** application for managing child profiles and daily activities.
 
 ## Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- **Child management**: Minimal-profile child records (KVKK / GDPR-style data minimization narrative).
+- **Activity scheduling**: Date and time range, type (STUDY, PLAY, SPORT, ART, SLEEP, SOCIAL), location, and notes.
+- **Conflict detection**: For the same child on the same day, time ranges must not overlap (interval overlap check).
+- **Pluggable storage (runtime)**: Binary serialization, SQLite (JDBC), MySQL (via Docker Compose).
+- **Console UI**: Arrow-key / Tab menus in a real terminal; plain text command mode for CI and automated tests.
 
-## Usage
+## Run
 
-To use this project, follow these steps:
+```bash
+cd kidsplanner-app
+mvn -q -DskipTests package
+java -jar target/kidsplanner-app-1.0-SNAPSHOT.jar
+```
 
-1. Step 1
-2. Step 2
-3. Step 3
+For MySQL, start the database with `docker-compose.yml` at the repository root. Optional environment variables: `KIDSPLANNER_MYSQL_URL`, `KIDSPLANNER_MYSQL_USER`, `KIDSPLANNER_MYSQL_PASSWORD` (defaults: `root` / `kidsplanner`).
+
+Default SQLite file: `kidsplanner.db` (created in the working directory).
 
 ## Documentation
 
-For more detailed information, refer to the [documentation](./docs).
-
+Maven site: `mvn site` (content under `src/site`).
