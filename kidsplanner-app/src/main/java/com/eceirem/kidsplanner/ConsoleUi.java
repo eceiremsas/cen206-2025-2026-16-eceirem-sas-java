@@ -1,8 +1,10 @@
 package com.eceirem.kidsplanner;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.PushbackInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -79,10 +81,43 @@ public final class ConsoleUi {
   }
 
   /**
+   * Reads one line of UTF-8 from stdin without using {@link java.util.Scanner}, so it does not
+   * compete with {@link #readMenuChoice} on the same stream. Use the same {@link PushbackInputStream}
+   * instance that wraps {@link System#in} in menu mode.
+   */
+  public static String readLineUtf8(InputStream in) throws IOException {
+    ByteArrayOutputStream buf = new ByteArrayOutputStream();
+    while (true) {
+      int b = in.read();
+      if (b == -1) {
+        break;
+      }
+      if (b == '\n') {
+        break;
+      }
+      if (b == '\r') {
+        int n = in.read();
+        if (n != '\n' && n != -1) {
+          if (in instanceof PushbackInputStream) {
+            ((PushbackInputStream) in).unread(n);
+          }
+        }
+        break;
+      }
+      buf.write(b);
+    }
+    return new String(buf.toByteArray(), StandardCharsets.UTF_8);
+  }
+
+  /**
    * Reads a menu choice with optional status line under the menu box.
    *
    * @param statusLine may be null
    * @return selected index
+   */
+  /**
+   * @param in should be a {@link PushbackInputStream} around {@link System#in} on Windows so
+   *           {@code \\r\\n} line endings do not leave a stray {@code \\n} for the next read.
    */
   public static int readMenuChoice(InputStream in, PrintStream out, String title, List<String> options, String statusLine)
       throws IOException {
@@ -105,7 +140,7 @@ public final class ConsoleUi {
         out.println("  " + DIM + statusLine + RESET);
         out.println();
       }
-      out.println("  " + DIM + "Ok asagi/yukari \u00b7 Tab: sonraki \u00b7 Home/End: bas/son \u00b7 Enter: sec" + RESET);
+      out.println("  " + DIM + "Ok asagi/yukari \u00b7 Tab: sonraki \u00b7 Home/End \u00b7 W/S: yedek \u00b7 Enter: sec" + RESET);
       out.println("  " + DIM + "Cikis: son satiri secin veya Q" + RESET);
       out.flush();
 
@@ -113,10 +148,25 @@ public final class ConsoleUi {
       if (read == -1) {
         return options.size() - 1;
       }
-      if (read == '\n' || read == '\r') {
+      if (read == '\r') {
+        int n = in.read();
+        if (n != '\n' && n != -1 && in instanceof PushbackInputStream) {
+          ((PushbackInputStream) in).unread(n);
+        }
+        return index;
+      }
+      if (read == '\n') {
         return index;
       }
       if (read == '\t') {
+        index = (index + 1) % options.size();
+        continue;
+      }
+      if (read == 'w' || read == 'W') {
+        index = (index - 1 + options.size()) % options.size();
+        continue;
+      }
+      if (read == 's' || read == 'S') {
         index = (index + 1) % options.size();
         continue;
       }

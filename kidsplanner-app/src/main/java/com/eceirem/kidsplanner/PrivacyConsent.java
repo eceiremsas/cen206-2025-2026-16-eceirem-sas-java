@@ -1,12 +1,12 @@
 package com.eceirem.kidsplanner;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Minimal consent capture aligned with KVKK/GDPR data-minimization narrative for the planner.
@@ -31,7 +31,10 @@ public final class PrivacyConsent {
     }
   }
 
-  public static void ensureInteractiveConsent(Scanner scanner, boolean menuMode) throws IOException {
+  /**
+   * @param menuStdin same stream used for {@link ConsoleUi} menus (e.g. wrapped {@link System#in}); ignored in text mode
+   */
+  public static void ensureInteractiveConsent(InputStream menuStdin, boolean menuMode) throws IOException {
     if (hasConsentFlag()) {
       return;
     }
@@ -45,7 +48,7 @@ public final class PrivacyConsent {
           "Bu uygulama yalnizca planlama icin asgari cocuk profili ve aktivite bilgisi tutar.");
       ConsoleUi.muted(System.out, "KVKK/GDPR: amac sinirlama, veri minimizasyonu, gereksiz alan tutulmaz.");
       ConsoleUi.muted(System.out, "Ok / Tab / Enter ile secin; numara ile menu yok (ders kurali).");
-      int idx = ConsoleUi.readMenuChoice(System.in, System.out, "Gizlilik / Kisisel Veri", choices,
+      int idx = ConsoleUi.readMenuChoice(menuStdin, System.out, "Gizlilik / Kisisel Veri", choices,
           "Secim hukuki onay niteligindedir.");
       if (idx != 0) {
         System.out.println("Onay verilmedi. Uygulama kapaniyor.");

@@ -13,6 +13,8 @@
 package com.eceirem.kidsplanner;
 
 import java.io.IOException;
+import java.io.PushbackInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
@@ -33,19 +35,46 @@ import java.util.Scanner;
 */
 public class Kidsplanner {
 
+  /** Non-null only in text (CI / piped) mode — do not use with raw {@link System#in} when menus run. */
   private final Scanner scanner;
+  /** Shared with {@link ConsoleUi} in menu mode so {@link Scanner} buffering does not steal keys from menus. */
+  private final PushbackInputStream menuStdin;
   private final boolean menuMode;
   private IRepository<Kid> kidRepository;
   private IRepository<Activity> activityRepository;
 
   public Kidsplanner() {
-    this(new Scanner(System.in, java.nio.charset.StandardCharsets.UTF_8.name()), System.console() != null);
+    boolean mm = System.console() != null;
+    if (mm) {
+      this.menuStdin = new PushbackInputStream(System.in, 64);
+      this.scanner = null;
+      this.menuMode = true;
+    } else {
+      this.menuStdin = null;
+      this.scanner = new Scanner(System.in, StandardCharsets.UTF_8.name());
+      this.menuMode = false;
+    }
+    reloadRepositories();
   }
 
   public Kidsplanner(Scanner scanner, boolean menuMode) {
+    if (menuMode) {
+      throw new IllegalArgumentException("Menu mode uses default constructor only (real console).");
+    }
+    if (scanner == null) {
+      throw new IllegalArgumentException("scanner required in text mode");
+    }
     this.scanner = scanner;
-    this.menuMode = menuMode;
+    this.menuStdin = null;
+    this.menuMode = false;
     reloadRepositories();
+  }
+
+  private String nextLine() throws IOException {
+    if (menuMode) {
+      return ConsoleUi.readLineUtf8(menuStdin);
+    }
+    return scanner.nextLine();
   }
 
   private void reloadRepositories() {
@@ -55,7 +84,7 @@ public class Kidsplanner {
 
   public void run() {
     try {
-      PrivacyConsent.ensureInteractiveConsent(scanner, menuMode);
+      PrivacyConsent.ensureInteractiveConsent(menuMode ? menuStdin : System.in, menuMode);
       if (menuMode) {
         runMenuMode();
       } else {
@@ -84,7 +113,7 @@ public class Kidsplanner {
         "Yardim ve format ozeti",
         "Cikis");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Ana Menu", main, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Ana Menu", main, menuStatusLine());
       if (choice == 0) {
         runKidMenu();
       } else if (choice == 1) {
@@ -94,7 +123,7 @@ public class Kidsplanner {
       } else if (choice == 3) {
         showHelpMenu();
         System.out.println("Devam icin Enter...");
-        scanner.nextLine();
+        nextLine();
       } else {
         break;
       }
@@ -104,7 +133,7 @@ public class Kidsplanner {
   private void runKidMenu() throws IOException {
     List<String> items = Arrays.asList("Cocuk ekle", "Cocuklari listele", "Cocuk sil", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Cocuk Yonetimi", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Cocuk Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addKidInteractive();
       } else if (choice == 1) {
@@ -113,7 +142,7 @@ public class Kidsplanner {
         ConsoleUi.title(System.out, "Kayitli cocuklar");
         listKidsPlain();
         System.out.println("Devam icin Enter...");
-        scanner.nextLine();
+        nextLine();
       } else if (choice == 2) {
         deleteKidInteractive();
       } else {
@@ -131,7 +160,7 @@ public class Kidsplanner {
         "Bugunun programi (sirali)",
         "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Aktivite Yonetimi", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Aktivite Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addActivityInteractiveMenu();
       } else if (choice == 1) {
@@ -140,7 +169,7 @@ public class Kidsplanner {
         ConsoleUi.title(System.out, "Tum aktiviteler");
         listActivitiesPlain();
         System.out.println("Devam icin Enter...");
-        scanner.nextLine();
+        nextLine();
       } else if (choice == 2) {
         updateActivityInteractive();
       } else if (choice == 3) {
@@ -148,7 +177,7 @@ public class Kidsplanner {
       } else if (choice == 4) {
         listTodayPlan();
         System.out.println("Devam icin Enter...");
-        scanner.nextLine();
+        nextLine();
       } else {
         break;
       }
@@ -158,7 +187,7 @@ public class Kidsplanner {
   private void runStorageMenu() throws IOException {
     List<String> items = Arrays.asList("Binary dosya", "SQLite", "MySQL", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Depolama Motoru", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Depolama Motoru", items, menuStatusLine());
       if (choice == 0) {
         RepositoryFactory.setActiveStorage(StorageType.BINARY);
         reloadRepositories();
@@ -177,20 +206,20 @@ public class Kidsplanner {
       System.out.println(RepositoryFactory.describeJdbcTargets());
       System.out.println("Uyari: Backend degisince veriler otomatik tasınmaz; yeni depoda bos veya mevcut kayitlar.");
       System.out.println("Devam icin Enter...");
-      scanner.nextLine();
+      nextLine();
     }
   }
 
-  private void addKidInteractive() {
+  private void addKidInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Yeni Cocuk");
     System.out.print("Gorunen ad: ");
-    String name = scanner.nextLine().trim();
+    String name = nextLine().trim();
     System.out.print("Dogum yili (bos birakilabilir): ");
-    String yearText = scanner.nextLine().trim();
+    String yearText = nextLine().trim();
     System.out.print("Not (bos birakilabilir): ");
-    String notes = scanner.nextLine();
+    String notes = nextLine();
     Integer year = null;
     if (!yearText.isEmpty()) {
       year = Integer.valueOf(Integer.parseInt(yearText));
@@ -202,20 +231,20 @@ public class Kidsplanner {
     kidRepository.save(kid);
     System.out.println("Cocuk kaydedildi. ID = " + kid.getId());
     System.out.println("Devam icin Enter...");
-    scanner.nextLine();
+    nextLine();
   }
 
-  private void deleteKidInteractive() {
+  private void deleteKidInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Cocuk Sil");
     listKidsPlain();
     System.out.print("Silinecek cocuk ID: ");
-    int id = Integer.parseInt(scanner.nextLine().trim());
+    int id = Integer.parseInt(nextLine().trim());
     kidRepository.delete(id);
     System.out.println("Cocuk ve bagli aktiviteler silindi (varsa).");
     System.out.println("Devam icin Enter...");
-    scanner.nextLine();
+    nextLine();
   }
 
   private void addActivityInteractiveMenu() throws IOException {
@@ -228,7 +257,7 @@ public class Kidsplanner {
     activityRepository.save(draft);
     System.out.println("Aktivite eklendi. ID = " + draft.getId());
     System.out.println("Devam icin Enter...");
-    scanner.nextLine();
+    nextLine();
   }
 
   private int pickKidIdForMenu() throws IOException {
@@ -249,7 +278,7 @@ public class Kidsplanner {
       labels.add(kid.getId() + " - " + kid.getDisplayName());
     }
     labels.add("+ Yeni cocuk");
-    int idx = ConsoleUi.readMenuChoice(System.in, System.out, "Cocuk secin", labels, menuStatusLine());
+    int idx = ConsoleUi.readMenuChoice(menuStdin, System.out, "Cocuk secin", labels, menuStatusLine());
     if (idx == labels.size() - 1) {
       addKidInteractive();
       List<Kid> refreshed = kidRepository.findAll();
@@ -264,13 +293,13 @@ public class Kidsplanner {
     return kids.get(idx).getId();
   }
 
-  private void updateActivityInteractive() {
+  private void updateActivityInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Aktivite Guncelle");
     listActivitiesPlain();
     System.out.print("Guncellenecek aktivite ID: ");
-    int id = Integer.parseInt(scanner.nextLine().trim());
+    int id = Integer.parseInt(nextLine().trim());
     Activity existing = activityRepository.findById(id);
     if (existing == null) {
       throw new ValidationException("ID bulunamadi: " + id);
@@ -281,23 +310,23 @@ public class Kidsplanner {
     activityRepository.update(updated);
     System.out.println("Aktivite guncellendi.");
     System.out.println("Devam icin Enter...");
-    scanner.nextLine();
+    nextLine();
   }
 
-  private void deleteActivityInteractive() {
+  private void deleteActivityInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Aktivite Sil");
     listActivitiesPlain();
     System.out.print("Silinecek aktivite ID: ");
-    int id = Integer.parseInt(scanner.nextLine().trim());
+    int id = Integer.parseInt(nextLine().trim());
     activityRepository.delete(id);
     System.out.println("Aktivite silindi (varsa).");
     System.out.println("Devam icin Enter...");
-    scanner.nextLine();
+    nextLine();
   }
 
-  private Activity readActivityBodyFromScanner(Activity base, int kidId) {
+  private Activity readActivityBodyFromScanner(Activity base, int kidId) throws IOException {
     String title = ask("Baslik", base == null ? "" : base.getTitle());
     if (title == null || title.trim().isEmpty()) {
       throw new ValidationException("Baslik bos olamaz.");
@@ -332,7 +361,13 @@ public class Kidsplanner {
     boolean running = true;
     while (running) {
       printTextMenu();
-      String raw = scanner.nextLine();
+      String raw;
+      try {
+        raw = nextLine();
+      } catch (IOException e) {
+        System.out.println("Girdi hatasi: " + e.getMessage());
+        continue;
+      }
       String cmd = raw.trim().toLowerCase(Locale.ROOT);
       try {
         if ("up".equals(cmd) || "tab".equals(cmd)) {
@@ -370,6 +405,8 @@ public class Kidsplanner {
         System.out.println("Hata: " + e.getMessage());
       } catch (NumberFormatException e) {
         System.out.println("Hata: Sayi formati gecersiz.");
+      } catch (IOException e) {
+        System.out.println("Girdi hatasi: " + e.getMessage());
       }
     }
   }
@@ -391,13 +428,13 @@ public class Kidsplanner {
     System.out.println(RepositoryFactory.describeJdbcTargets());
   }
 
-  private void addKidText() {
+  private void addKidText() throws IOException {
     System.out.print("Gorunen ad: ");
-    String name = scanner.nextLine().trim();
+    String name = nextLine().trim();
     System.out.print("Dogum yili (bos): ");
-    String yearText = scanner.nextLine().trim();
+    String yearText = nextLine().trim();
     System.out.print("Not (bos): ");
-    String notes = scanner.nextLine();
+    String notes = nextLine();
     Integer year = null;
     if (!yearText.isEmpty()) {
       year = Integer.valueOf(Integer.parseInt(yearText));
@@ -410,9 +447,9 @@ public class Kidsplanner {
     System.out.println("Cocuk eklendi. ID = " + kid.getId());
   }
 
-  private void deleteKidText() {
+  private void deleteKidText() throws IOException {
     System.out.print("Silinecek cocuk ID: ");
-    int id = Integer.parseInt(scanner.nextLine().trim());
+    int id = Integer.parseInt(nextLine().trim());
     kidRepository.delete(id);
     System.out.println("Cocuk silindi (varsa).");
   }
@@ -463,16 +500,16 @@ public class Kidsplanner {
     ConsoleUi.muted(System.out, "Metin modu (CI / stdin): komutlar open, add, list, kid-add, storage, exit ...");
   }
 
-  private void addActivity() {
+  private void addActivity() throws IOException {
     Activity activity = readActivityFields(null);
     validateActivity(activity, -1);
     activityRepository.save(activity);
     System.out.println("Aktivite eklendi. ID = " + activity.getId());
   }
 
-  private void updateActivity() {
+  private void updateActivity() throws IOException {
     System.out.print("Guncellenecek ID: ");
-    int id = Integer.parseInt(scanner.nextLine().trim());
+    int id = Integer.parseInt(nextLine().trim());
     Activity existing = activityRepository.findById(id);
     if (existing == null) {
       throw new ValidationException("ID bulunamadi: " + id);
@@ -484,9 +521,9 @@ public class Kidsplanner {
     System.out.println("Aktivite guncellendi.");
   }
 
-  private void deleteActivity() {
+  private void deleteActivity() throws IOException {
     System.out.print("Silinecek ID: ");
-    int id = Integer.parseInt(scanner.nextLine().trim());
+    int id = Integer.parseInt(nextLine().trim());
     activityRepository.delete(id);
     System.out.println("Aktivite silindi (varsa).");
   }
@@ -578,7 +615,7 @@ public class Kidsplanner {
     });
   }
 
-  private Activity readActivityFields(Activity base) {
+  private Activity readActivityFields(Activity base) throws IOException {
     String kidDefault = "";
     if (base != null && base.getKidId() != null) {
       kidDefault = base.getKidId().toString();
@@ -638,10 +675,10 @@ public class Kidsplanner {
     return id;
   }
 
-  private String ask(String label, String defaultValue) {
+  private String ask(String label, String defaultValue) throws IOException {
     String def = defaultValue == null ? "" : defaultValue;
     System.out.print(label + (def.isEmpty() ? "" : " [" + def + "]") + ": ");
-    String value = scanner.nextLine().trim();
+    String value = nextLine().trim();
     return value.isEmpty() ? def : value;
   }
 
