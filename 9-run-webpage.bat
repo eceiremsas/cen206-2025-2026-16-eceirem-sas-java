@@ -2,7 +2,7 @@
 @setlocal enableextensions
 @cd /d "%~dp0"
 
-cd calculator-app
+cd kidsplanner-app
 
 echo Run Web Site
 echo to Exit Use CTRL+Z CTRL+C
