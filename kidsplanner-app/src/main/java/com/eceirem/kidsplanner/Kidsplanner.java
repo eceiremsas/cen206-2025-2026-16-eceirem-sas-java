@@ -69,15 +69,22 @@ public class Kidsplanner {
     System.out.println("Uygulama kapatildi.");
   }
 
+  private String menuStatusLine() {
+    int nk = kidRepository.findAll().size();
+    int na = activityRepository.findAll().size();
+    StorageType st = RepositoryFactory.getActiveStorage();
+    return "Depolama: " + st.name() + "  |  Cocuk: " + nk + "  |  Aktivite: " + na;
+  }
+
   private void runMenuMode() throws IOException {
     List<String> main = Arrays.asList(
         "Cocuk yonetimi",
         "Aktivite yonetimi",
         "Depolama (Binary / SQLite / MySQL)",
-        "Yardim",
+        "Yardim ve format ozeti",
         "Cikis");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Ana Menu", main);
+      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Ana Menu", main, menuStatusLine());
       if (choice == 0) {
         runKidMenu();
       } else if (choice == 1) {
@@ -85,7 +92,7 @@ public class Kidsplanner {
       } else if (choice == 2) {
         runStorageMenu();
       } else if (choice == 3) {
-        showHelp();
+        showHelpMenu();
         System.out.println("Devam icin Enter...");
         scanner.nextLine();
       } else {
@@ -97,10 +104,13 @@ public class Kidsplanner {
   private void runKidMenu() throws IOException {
     List<String> items = Arrays.asList("Cocuk ekle", "Cocuklari listele", "Cocuk sil", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Cocuk Yonetimi", items);
+      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Cocuk Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addKidInteractive();
       } else if (choice == 1) {
+        ConsoleUi.clearScreen(System.out);
+        ConsoleUi.printBanner(System.out);
+        ConsoleUi.title(System.out, "Kayitli cocuklar");
         listKidsPlain();
         System.out.println("Devam icin Enter...");
         scanner.nextLine();
@@ -121,10 +131,13 @@ public class Kidsplanner {
         "Bugunun programi (sirali)",
         "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Aktivite Yonetimi", items);
+      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Aktivite Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addActivityInteractiveMenu();
       } else if (choice == 1) {
+        ConsoleUi.clearScreen(System.out);
+        ConsoleUi.printBanner(System.out);
+        ConsoleUi.title(System.out, "Tum aktiviteler");
         listActivitiesPlain();
         System.out.println("Devam icin Enter...");
         scanner.nextLine();
@@ -145,19 +158,19 @@ public class Kidsplanner {
   private void runStorageMenu() throws IOException {
     List<String> items = Arrays.asList("Binary dosya", "SQLite", "MySQL", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Depolama Motoru", items);
+      int choice = ConsoleUi.readMenuChoice(System.in, System.out, "Depolama Motoru", items, menuStatusLine());
       if (choice == 0) {
         RepositoryFactory.setActiveStorage(StorageType.BINARY);
         reloadRepositories();
-        System.out.println("Aktif depolama: BINARY");
+        ConsoleUi.successLine(System.out, "Aktif depolama: BINARY");
       } else if (choice == 1) {
         RepositoryFactory.setActiveStorage(StorageType.SQLITE);
         reloadRepositories();
-        System.out.println("Aktif depolama: SQLITE");
+        ConsoleUi.successLine(System.out, "Aktif depolama: SQLITE");
       } else if (choice == 2) {
         RepositoryFactory.setActiveStorage(StorageType.MYSQL);
         reloadRepositories();
-        System.out.println("Aktif depolama: MYSQL");
+        ConsoleUi.successLine(System.out, "Aktif depolama: MYSQL");
       } else {
         break;
       }
@@ -170,6 +183,7 @@ public class Kidsplanner {
 
   private void addKidInteractive() {
     ConsoleUi.clearScreen(System.out);
+    ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Yeni Cocuk");
     System.out.print("Gorunen ad: ");
     String name = scanner.nextLine().trim();
@@ -193,6 +207,7 @@ public class Kidsplanner {
 
   private void deleteKidInteractive() {
     ConsoleUi.clearScreen(System.out);
+    ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Cocuk Sil");
     listKidsPlain();
     System.out.print("Silinecek cocuk ID: ");
@@ -206,6 +221,7 @@ public class Kidsplanner {
   private void addActivityInteractiveMenu() throws IOException {
     int kidId = pickKidIdForMenu();
     ConsoleUi.clearScreen(System.out);
+    ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Yeni Aktivite");
     Activity draft = readActivityBodyFromScanner(null, kidId);
     validateActivity(draft, -1);
@@ -233,7 +249,7 @@ public class Kidsplanner {
       labels.add(kid.getId() + " - " + kid.getDisplayName());
     }
     labels.add("+ Yeni cocuk");
-    int idx = ConsoleUi.readMenuChoice(System.in, System.out, "Cocuk secin", labels);
+    int idx = ConsoleUi.readMenuChoice(System.in, System.out, "Cocuk secin", labels, menuStatusLine());
     if (idx == labels.size() - 1) {
       addKidInteractive();
       List<Kid> refreshed = kidRepository.findAll();
@@ -250,6 +266,7 @@ public class Kidsplanner {
 
   private void updateActivityInteractive() {
     ConsoleUi.clearScreen(System.out);
+    ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Aktivite Guncelle");
     listActivitiesPlain();
     System.out.print("Guncellenecek aktivite ID: ");
@@ -269,6 +286,7 @@ public class Kidsplanner {
 
   private void deleteActivityInteractive() {
     ConsoleUi.clearScreen(System.out);
+    ConsoleUi.printBanner(System.out);
     ConsoleUi.title(System.out, "Aktivite Sil");
     listActivitiesPlain();
     System.out.print("Silinecek aktivite ID: ");
@@ -424,6 +442,27 @@ public class Kidsplanner {
     System.out.println(RepositoryFactory.describeJdbcTargets());
   }
 
+  private void showHelpMenu() {
+    ConsoleUi.clearScreen(System.out);
+    ConsoleUi.printBanner(System.out);
+    ConsoleUi.title(System.out, "Yardim ve ders gereksinimleri");
+    ConsoleUi.muted(System.out, "Tum menulerde secim: ok tuslari, Tab (sonraki oge), Home / End, Enter.");
+    ConsoleUi.muted(System.out, "Ana menusu rakam ile calismaz; yalnizca klavye ile gezinme (ogretim hedefi).");
+    ConsoleUi.rule(System.out);
+    System.out.println("  " + ConsoleUi.FG_CYAN + "Tarih" + ConsoleUi.RESET + " : yyyy-MM-dd");
+    System.out.println("  " + ConsoleUi.FG_CYAN + "Saat" + ConsoleUi.RESET + "  : HH:mm");
+    System.out.println("  " + ConsoleUi.FG_CYAN + "Tipler" + ConsoleUi.RESET
+        + " : STUDY, PLAY, SPORT, ART, SLEEP, SOCIAL");
+    ConsoleUi.rule(System.out);
+    ConsoleUi.muted(System.out, "Cakisma: Ayni cocuk + ayni gun icinde zaman araliklari kesismemeli.");
+    ConsoleUi.muted(System.out, "KVKK: Asgari cocuk profili; gereksiz alan tutulmaz (ayrica Gizlilik menusu).");
+    ConsoleUi.muted(System.out, "MySQL: Proje kokundeki docker-compose.yml ile veritabani ayaga kaldirilir.");
+    System.out.println();
+    System.out.println(RepositoryFactory.describeJdbcTargets());
+    System.out.println();
+    ConsoleUi.muted(System.out, "Metin modu (CI / stdin): komutlar open, add, list, kid-add, storage, exit ...");
+  }
+
   private void addActivity() {
     Activity activity = readActivityFields(null);
     validateActivity(activity, -1);
@@ -455,12 +494,16 @@ public class Kidsplanner {
   private void listActivities() {
     List<Activity> activities = new ArrayList<Activity>(activityRepository.findAll());
     sortActivities(activities);
-    System.out.println("--- Aktivite Listesi ---");
-    for (Activity activity : activities) {
-      System.out.println(activity);
-    }
-    if (activities.isEmpty()) {
-      System.out.println("(kayit yok)");
+    if (menuMode) {
+      ConsoleUi.printActivityTable(System.out, activities);
+    } else {
+      System.out.println("--- Aktivite Listesi ---");
+      for (Activity activity : activities) {
+        System.out.println(activity);
+      }
+      if (activities.isEmpty()) {
+        System.out.println("(kayit yok)");
+      }
     }
   }
 
@@ -476,12 +519,16 @@ public class Kidsplanner {
         return Integer.compare(a.getId(), b.getId());
       }
     });
-    System.out.println("--- Cocuk Listesi ---");
-    for (Kid kid : kids) {
-      System.out.println(kid);
-    }
-    if (kids.isEmpty()) {
-      System.out.println("(cocuk yok)");
+    if (menuMode) {
+      ConsoleUi.printKidTable(System.out, kids);
+    } else {
+      System.out.println("--- Cocuk Listesi ---");
+      for (Kid kid : kids) {
+        System.out.println(kid);
+      }
+      if (kids.isEmpty()) {
+        System.out.println("(cocuk yok)");
+      }
     }
   }
 
@@ -494,12 +541,23 @@ public class Kidsplanner {
       }
     }
     sortActivities(activities);
-    System.out.println("--- Bugunun Programi (" + today + ") ---");
-    for (Activity activity : activities) {
-      System.out.println(activity);
-    }
-    if (activities.isEmpty()) {
-      System.out.println("(bugun icin kayit yok)");
+    if (menuMode) {
+      ConsoleUi.clearScreen(System.out);
+      ConsoleUi.printBanner(System.out);
+      ConsoleUi.title(System.out, "Bugunun programi - " + today);
+      if (activities.isEmpty()) {
+        ConsoleUi.muted(System.out, "(bugun icin kayit yok)");
+      } else {
+        ConsoleUi.printActivityTable(System.out, activities);
+      }
+    } else {
+      System.out.println("--- Bugunun Programi (" + today + ") ---");
+      for (Activity activity : activities) {
+        System.out.println(activity);
+      }
+      if (activities.isEmpty()) {
+        System.out.println("(bugun icin kayit yok)");
+      }
     }
   }
 

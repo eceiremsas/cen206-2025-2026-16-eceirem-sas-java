@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -29,20 +31,23 @@ public final class PrivacyConsent {
     }
   }
 
-  public static void ensureInteractiveConsent(Scanner scanner, boolean menuMode) {
+  public static void ensureInteractiveConsent(Scanner scanner, boolean menuMode) throws IOException {
     if (hasConsentFlag()) {
       return;
     }
     if (menuMode) {
+      List<String> choices = Arrays.asList(
+          "EVET - planlama icin asgari veriyi islemeye onay veriyorum",
+          "Hayir - uygulamayi kapat");
       ConsoleUi.clearScreen(System.out);
       ConsoleUi.printBanner(System.out);
-      ConsoleUi.title(System.out, "Gizlilik / Kisisel Veri");
-      System.out.println("Bu uygulama yalnizca planlama icin asgari cocuk profili ve aktivite bilgisi tutar.");
-      System.out.println("KVKK kapsaminda amac sinirlama ve veri minimizasyonu uygulanir.");
-      System.out.println();
-      System.out.print("Devam etmek icin EVET yazin: ");
-      String line = scanner.nextLine().trim();
-      if (!"EVET".equalsIgnoreCase(line)) {
+      ConsoleUi.muted(System.out,
+          "Bu uygulama yalnizca planlama icin asgari cocuk profili ve aktivite bilgisi tutar.");
+      ConsoleUi.muted(System.out, "KVKK/GDPR: amac sinirlama, veri minimizasyonu, gereksiz alan tutulmaz.");
+      ConsoleUi.muted(System.out, "Ok / Tab / Enter ile secin; numara ile menu yok (ders kurali).");
+      int idx = ConsoleUi.readMenuChoice(System.in, System.out, "Gizlilik / Kisisel Veri", choices,
+          "Secim hukuki onay niteligindedir.");
+      if (idx != 0) {
         System.out.println("Onay verilmedi. Uygulama kapaniyor.");
         System.exit(0);
       }
