@@ -5,6 +5,7 @@
  */
 package com.eceirem.kidsplanner;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -101,6 +102,9 @@ public class KidsplannerTest {
     String input = "add\nMath\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Aktivite eklendi"));
+    assertTrue(output.contains("title='Math'"));
+    assertTrue(output.contains("date=2026-03-25"));
+    assertTrue(output.contains("start=09:00"));
   }
 
   /**
@@ -116,6 +120,7 @@ public class KidsplannerTest {
         + "add\nFirst\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("--- Aktivite Listesi ---"));
+    assertInOrder(output, "title='First'", "title='Second'");
   }
 
   /**
@@ -131,6 +136,7 @@ public class KidsplannerTest {
         + "add\nB\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("--- Aktivite Listesi ---"));
+    assertInOrder(output, "title='B'", "title='A'");
   }
 
   /**
@@ -188,6 +194,10 @@ public class KidsplannerTest {
         + "update\n1\nNew\n2026-03-25\n10:30\n11:30\nPLAY\nPark\nn2\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("Aktivite guncellendi."));
+    assertTrue(output.contains("title='New'"));
+    assertTrue(output.contains("start=10:30"));
+    assertTrue(output.contains("end=11:30"));
+    assertTrue(output.contains("type=PLAY"));
   }
 
   /**
@@ -203,6 +213,10 @@ public class KidsplannerTest {
         + "update\n1\n\n\n\n\n\n\n\nlist\nexit\n";
     String output = runWithInput(input);
     assertTrue(output.contains("title='Original'"));
+    assertTrue(output.contains("date=2026-03-25"));
+    assertTrue(output.contains("start=09:00"));
+    assertTrue(output.contains("end=10:00"));
+    assertTrue(output.contains("type=STUDY"));
   }
 
   /**
@@ -215,7 +229,8 @@ public class KidsplannerTest {
   @Test
   public void testRunDeleteForMissingIdPrintsDeleteMessage() throws java.io.IOException {
     String output = runWithInput("delete\n42\nexit\n");
-    assertTrue(output.contains("Aktivite silindi"));
+    assertTrue(output.contains("Aktivite silindi (varsa)."));
+    assertFalse(output.contains("Hata:"));
   }
 
   /**
@@ -304,6 +319,45 @@ public class KidsplannerTest {
   }
 
   /**
+   * @brief Verifies command parsing tolerates mixed case and surrounding spaces.
+   *
+   * @param none This method has no parameter.
+   * @return void This method returns no value.
+   * @throws java.io.IOException If output conversion fails.
+   */
+  @Test
+  public void testRunWithMixedCaseAndSpacesCommandParsesCorrectly() throws java.io.IOException {
+    String output = runWithInput("  LiSt  \nexit\n");
+    assertTrue(output.contains("--- Aktivite Listesi ---"));
+  }
+
+  /**
+   * @brief Verifies empty command line is handled as invalid command.
+   *
+   * @param none This method has no parameter.
+   * @return void This method returns no value.
+   * @throws java.io.IOException If output conversion fails.
+   */
+  @Test
+  public void testRunWithEmptyCommandShowsInvalidMessage() throws java.io.IOException {
+    String output = runWithInput("\nexit\n");
+    assertTrue(output.contains("Gecersiz komut"));
+  }
+
+  /**
+   * @brief Verifies exit command ends flow and prints shutdown message.
+   *
+   * @param none This method has no parameter.
+   * @return void This method returns no value.
+   * @throws java.io.IOException If output conversion fails.
+   */
+  @Test
+  public void testRunWithExitPrintsShutdownMessage() throws java.io.IOException {
+    String output = runWithInput("exit\n");
+    assertTrue(output.contains("Uygulama kapatildi."));
+  }
+
+  /**
    * @brief Runs planner with provided input and returns captured output.
    *
    * @param scriptedInput Console commands to feed into System.in.
@@ -327,5 +381,21 @@ public class KidsplannerTest {
       redirectedOut.close();
     }
     return capturedOut.toString(StandardCharsets.UTF_8.name());
+  }
+
+  /**
+   * @brief Asserts first marker appears before second marker in output text.
+   *
+   * @param outputText Full captured output text.
+   * @param firstMarker Marker expected to appear first.
+   * @param secondMarker Marker expected to appear second.
+   * @return void This method returns no value.
+   */
+  private void assertInOrder(String outputText, String firstMarker, String secondMarker) {
+    int firstIndex = outputText.indexOf(firstMarker);
+    int secondIndex = outputText.indexOf(secondMarker);
+    assertTrue(firstIndex >= 0, "Output should contain first marker: " + firstMarker);
+    assertTrue(secondIndex >= 0, "Output should contain second marker: " + secondMarker);
+    assertTrue(firstIndex < secondIndex, "Expected '" + firstMarker + "' before '" + secondMarker + "'");
   }
 }
