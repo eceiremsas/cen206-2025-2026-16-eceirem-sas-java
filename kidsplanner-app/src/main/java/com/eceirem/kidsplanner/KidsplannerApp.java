@@ -23,6 +23,8 @@ package com.eceirem.kidsplanner;
  * @author ugur.coruh
  */
 public class KidsplannerApp {
- 
-
+  public static void main(String[] args) {
+    Kidsplanner planner = new Kidsplanner();
+    planner.run();
+  }
 }
