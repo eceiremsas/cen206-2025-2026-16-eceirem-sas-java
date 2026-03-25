@@ -51,9 +51,11 @@ public class ActivityTest {
         LocalTime.of(11, 0),
         ActivityType.STUDY,
         "Home",
-        "Math notes");
+        "Math notes",
+        Integer.valueOf(1));
 
     assertEquals("Homework", activity.getTitle());
+    assertEquals(Integer.valueOf(1), activity.getKidId());
     assertEquals(LocalDate.of(2026, 3, 25), activity.getDate());
     assertEquals(LocalTime.of(10, 0), activity.getStartTime());
     assertEquals(LocalTime.of(11, 0), activity.getEndTime());
@@ -78,13 +80,15 @@ public class ActivityTest {
         LocalTime.of(16, 0),
         ActivityType.PLAY,
         "Park",
-        "Ball");
+        "Ball",
+        Integer.valueOf(2));
     activity.setId(3);
 
     String text = activity.toString();
     assertTrue(text.contains("id=3"));
     assertTrue(text.contains("title='Play'"));
     assertTrue(text.contains("type=PLAY"));
+    assertTrue(text.contains("kidId=2"));
   }
 
   /**
@@ -104,5 +108,6 @@ public class ActivityTest {
     assertNull(activity.getType());
     assertNull(activity.getLocation());
     assertNull(activity.getNotes());
+    assertNull(activity.getKidId());
   }
 }
