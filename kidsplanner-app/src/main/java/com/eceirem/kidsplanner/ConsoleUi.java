@@ -54,7 +54,7 @@ public final class ConsoleUi {
     out.println();
     out.println(DIM + "  ┌────────────────────────────────────────────────────────────┐" + RESET);
     out.println(FG_CYAN + BOLD + "  │" + RESET + "   " + FG_WHITE + BOLD + "KIDS  PLANNER" + RESET + "  "
-        + FG_MAGENTA + "\u2022" + RESET + "  " + DIM + "CEN206 \u00b7 Konsol Midterm" + "          " + FG_CYAN + BOLD + "│" + RESET);
+        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 \u00b7 Konsol Midterm" + "          " + FG_CYAN + BOLD + "│" + RESET);
     out.println(FG_GREEN + BOLD + "  │" + RESET + "   " + DIM + "Cocuk ve aktivite yonetimi \u00b7 Binary \u00b7 SQLite \u00b7 MySQL" + "     " + FG_GREEN + BOLD + "│" + RESET);
     out.println(DIM + "  └────────────────────────────────────────────────────────────┘" + RESET);
     out.println();
@@ -340,7 +340,8 @@ public final class ConsoleUi {
     out.println(TEE_L + repeat(HLINE, inner + 2) + TEE_R);
     for (int i = 0; i < options.size(); i++) {
       String label = options.get(i);
-      String plain = (i == selectedIndex) ? ("\u25b8 " + label) : ("  " + label);
+      // Use a simple ASCII dot so it renders reliably in all Windows consoles.
+      String plain = (i == selectedIndex) ? (". " + label) : ("  " + label);
       while (plain.length() < inner + 2) {
         plain += " ";
       }
