@@ -28,6 +28,17 @@ public final class RepositoryFactory {
   private RepositoryFactory() {
   }
 
+  /** Resets static config after integration tests (same package). */
+  static void resetConfigurationForTests() {
+    synchronized (LOCK) {
+      activeStorage = StorageType.BINARY;
+      sqliteJdbcUrl = "jdbc:sqlite:kidsplanner.db";
+      mysqlJdbcUrl = defaultMysqlUrl();
+      mysqlUser = defaultMysqlUser();
+      mysqlPassword = defaultMysqlPassword();
+    }
+  }
+
   /** @return default JDBC URL for local MySQL */
   private static String defaultMysqlUrl() {
     return "jdbc:mysql://localhost:3306/kidsplanner?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";

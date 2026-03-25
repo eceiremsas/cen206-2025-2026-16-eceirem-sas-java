@@ -39,6 +39,7 @@ public class KidsplannerTest {
     Files.deleteIfExists(Paths.get("kidsplanner-kids.bin"));
     Files.deleteIfExists(Paths.get("kidsplanner-consent.flag"));
     Files.deleteIfExists(Paths.get("kidsplanner.db"));
+    RepositoryFactory.resetConfigurationForTests();
   }
 
   /**

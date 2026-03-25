@@ -13,6 +13,23 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    env:
+      KIDSPLANNER_TEST_MYSQL_JDBC: jdbc:mysql://127.0.0.1:3306/kidsplanner?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      KIDSPLANNER_TEST_MYSQL_USER: root
+      KIDSPLANNER_TEST_MYSQL_PASSWORD: kidsplanner
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: kidsplanner
+          MYSQL_DATABASE: kidsplanner
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pkidsplanner"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
       - name: Checkout
         uses: actions/checkout@v4

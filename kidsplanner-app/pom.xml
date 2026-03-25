@@ -161,26 +161,19 @@
 					<systemPropertyVariables>
 						<kidsplanner.text.mode>true</kidsplanner.text.mode>
 					</systemPropertyVariables>
+					<!-- Matches root docker-compose.yml when DB is up; override via env in CI -->
+					<environmentVariables>
+						<KIDSPLANNER_TEST_MYSQL_JDBC>jdbc:mysql://127.0.0.1:3306/kidsplanner?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC</KIDSPLANNER_TEST_MYSQL_JDBC>
+						<KIDSPLANNER_TEST_MYSQL_USER>root</KIDSPLANNER_TEST_MYSQL_USER>
+						<KIDSPLANNER_TEST_MYSQL_PASSWORD>kidsplanner</KIDSPLANNER_TEST_MYSQL_PASSWORD>
+					</environmentVariables>
 				</configuration>
 			</plugin>
 			
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.7</version>
-				<configuration>
-					<excludes>
-						<exclude>com/eceirem/kidsplanner/Kidsplanner$1*</exclude>
-						<!-- Exclude interactive UI / integration-heavy code from unit coverage -->
-						<exclude>com/eceirem/kidsplanner/ConsoleUi*</exclude>
-						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
-						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
-						<exclude>com/eceirem/kidsplanner/MysqlRepository*</exclude>
-						<!-- Exclude factory/repo I/O glue from unit coverage -->
-						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
-						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>
-					</excludes>
-				</configuration>
+				<version>0.8.12</version>
 				<executions>
 					<execution>
 						<goals>
