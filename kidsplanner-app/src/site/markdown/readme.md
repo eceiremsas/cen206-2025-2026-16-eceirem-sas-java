@@ -1,4 +1,4 @@
-# eclipse-java-maven-template
+# Kids Activity Planner (CEN206)
 
 # Overview
 
@@ -6,7 +6,7 @@ You will generate eclipse maven project with Junit4 from CLI and. Also you will 
 
 ## Releases
 
-- [![GitHub release badge](https://badgen.net/github/release/ucoruh/eclipse-java-maven-template)](https://github.com/ucoruh/eclipse-java-maven-template/releases/latest)
+- [![GitHub release badge](https://badgen.net/github/release/eceiremsas/cen206-2025-2026-16-eceirem-sas-java)](https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/releases/latest)
 
 ## Platforms
 
@@ -18,7 +18,7 @@ You will generate eclipse maven project with Junit4 from CLI and. Also you will 
 
 ## Test Coverage
 
-[![Release](https://github.com/ucoruh/eclipse-java-maven-template/actions/workflows/release.yml/badge.svg)](https://github.com/ucoruh/eclipse-java-maven-template/actions/workflows/release.yml)
+[![Release](https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/actions/workflows/release.yml/badge.svg)](https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/actions/workflows/release.yml)
 
 **Coverage**
 
@@ -550,8 +550,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * @author ugur.coruh
- *
+ * @author Ece Irem SAS
  */
 public class KidsplannerTest {
 
@@ -706,25 +705,25 @@ public class KidsplannerAppTest {
 
     <!-- More Project Information -->
     <name>kidsplanner-app</name>
-    <url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+    <url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java</url>
     <scm>
-        <url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+        <url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java</url>
     </scm>
-    <inceptionYear>2023</inceptionYear>
+    <inceptionYear>2026</inceptionYear>
     <developers>
         <developer>
-            <name>Asst. Prof. Dr. Ugur CORUH</name>
+            <name>Ece İrem ŞAŞ</name>
             <organization>RTEU</organization>
-            <email>ugur.coruh@erdogan.edu.tr</email>
+            <email>eceirem_sas23@erdogan.edu.tr</email>
             <roles>
                 <role>Developer</role>
                 <role>Designer</role>
             </roles>
         </developer>
         <developer>
-            <name>Other Person</name>
+            <name>İkra BOSTAN</name>
             <organization>RTEU</organization>
-            <email>mail@gmail.com</email>
+            <email>ikra_bostan23@erdogan.edu.tr</email>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -732,8 +731,8 @@ public class KidsplannerAppTest {
     </developers>
     <contributors>
         <contributor>
-            <name>Asst. Prof. Dr. Ugur CORUH</name>
-            <email>ugur.coruh@erdogan.edu.tr</email>
+            <name>Ece İrem ŞAŞ</name>
+            <email>eceirem_sas23@erdogan.edu.tr</email>
             <organization>RTEU</organization>
             <roles>
                 <role>Developer</role>
@@ -741,15 +740,15 @@ public class KidsplannerAppTest {
             </roles>
         </contributor>
         <contributor>
-            <name>Other Person</name>
+            <name>İkra BOSTAN</name>
             <organization>RTEU</organization>
-            <email>mail@gmail.com</email>
+            <email>ikra_bostan23@erdogan.edu.tr</email>
             <roles>
                 <role>Developer</role>
             </roles>
         </contributor>
     </contributors>
-    <description>Maven Example Template Project</description>
+    <description>Kids Activity Planner - CEN206 midterm console application (Binary, SQLite, MySQL)</description>
     <organization>
         <name>Recep Tayyip Erdogan University</name>
         <url>www.erdogan.edu.tr</url>
@@ -757,38 +756,33 @@ public class KidsplannerAppTest {
     <!-- Environment Settings -->
     <issueManagement>
         <system>Github</system>
-        <url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+        <url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/issues</url>
     </issueManagement>
     <ciManagement>
         <system>Github</system>
         <notifiers>
             <notifier>
-                <address>ugur.coruh@erdogan.edu.tr</address>
+                <address>eceirem_sas23@erdogan.edu.tr</address>
                 <sendOnSuccess>true</sendOnSuccess>
                 <sendOnError>true</sendOnError>
                 <sendOnFailure>true</sendOnFailure>
                 <sendOnWarning>true</sendOnWarning>
             </notifier>
         </notifiers>
-        <url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+        <url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/actions</url>
     </ciManagement>
-    <repositories>
-        <repository>
-            <id>eclipse-java-maven-template</id>
-            <name>eclipse-java-maven-template</name>
-            <url>https://github.com/ucoruh/eclipse-java-maven-template</url>
-        </repository>
-    </repositories>
+    <!-- Dependencies resolve from Maven Central only. -->
     <distributionManagement>
         <site>
-            <name>https://github.com/ucoruh/eclipse-java-maven-template</name>
-            <id>eclipse-java-maven-template</id>
+            <id>github-pages</id>
+            <name>Kids Activity Planner documentation site</name>
+            <url>https://eceiremsas.github.io/cen206-2025-2026-16-eceirem-sas-java/</url>
         </site>
-        <downloadUrl>https://github.com/ucoruh/eclipse-java-maven-template</downloadUrl>
+        <downloadUrl>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/releases</downloadUrl>
         <repository>
-            <id>eclipse-java-maven-template</id>
-            <name>eclipse-java-maven-template</name>
-            <url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+            <id>github-project</id>
+            <name>Project releases (see GitHub Releases)</name>
+            <url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java</url>
         </repository>
     </distributionManagement>
     <properties>
@@ -986,7 +980,7 @@ java -cp kidsplanner-app-1.0-SNAPSHOT.jar com.eceirem.kidsplanner.KidsplannerApp
 Output
 
 ```bash
-C:\Users\ugur.coruh\Desktop\eclipse-java-maven-template\kidsplanner-app\target>java -cp kidsplanner-app-1.0-SNAPSHOT.jar com.eceirem.kidsplanner.KidsplannerApp
+C:\path\to\cen206-2025-2026-16-eceirem-sas-java\kidsplanner-app\target>java -cp kidsplanner-app-1.0-SNAPSHOT.jar com.eceirem.kidsplanner.KidsplannerApp
 Hello World!
 ```
 
@@ -999,7 +993,7 @@ reportgenerator "-reports:target/site/jacoco/jacoco.xml" "-sourcedirs:src/main/j
 Output
 
 ```bash
-C:\Users\ugur.coruh\Desktop\eclipse-java-maven-template\kidsplanner-app>reportgenerator "-reports:target/site/jacoco/jacoco.xml" "-sourcedirs:src/main/java" "-targetdir:coveragereport" -reporttypes:Html
+C:\path\to\cen206-2025-2026-16-eceirem-sas-java\kidsplanner-app>reportgenerator "-reports:target/site/jacoco/jacoco.xml" "-sourcedirs:src/main/java" "-targetdir:coveragereport" -reporttypes:Html
 2023-05-24T17:26:40: Arguments
 2023-05-24T17:26:40:  -reports:target/site/jacoco/jacoco.xml
 2023-05-24T17:26:40:  -sourcedirs:src/main/java
@@ -1008,7 +1002,7 @@ C:\Users\ugur.coruh\Desktop\eclipse-java-maven-template\kidsplanner-app>reportge
 2023-05-24T17:26:40: Writing report file 'coveragereport\index.html'
 2023-05-24T17:26:40: Report generation took 0,2 seconds
 
-C:\Users\ugur.coruh\Desktop\eclipse-java-maven-template\kidsplanner-app>
+C:\path\to\cen206-2025-2026-16-eceirem-sas-java\kidsplanner-app>
 ```
 
 ![](assets/2023-05-25-00-52-27-image.png)
@@ -1042,7 +1036,7 @@ echo Enable necessary extensions
 echo Change the current working directory to the script directory
 @cd /d "%~dp0"
 
-git clone https://github.com/ucoruh/eclipse-java-maven-template.git
+git clone https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java.git
 
 echo Get the current directory
 set "currentDir=%CD%"
