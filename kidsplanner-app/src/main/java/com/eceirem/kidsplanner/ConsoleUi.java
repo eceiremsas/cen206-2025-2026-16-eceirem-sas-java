@@ -54,7 +54,7 @@ public final class ConsoleUi {
     out.println();
     out.println(DIM + "  ┌────────────────────────────────────────────────────────────┐" + RESET);
     out.println(FG_CYAN + BOLD + "  │" + RESET + "   " + FG_WHITE + BOLD + "KIDS  PLANNER" + RESET + "  "
-        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 \u00b7 Konsol Midterm" + "          " + FG_CYAN + BOLD + "│" + RESET);
+        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 Kids Activity Planner Midterm Project" + " " + FG_CYAN + BOLD + "│" + RESET);
     out.println(FG_GREEN + BOLD + "  │" + RESET + "   " + DIM + "Cocuk ve aktivite yonetimi \u00b7 Binary \u00b7 SQLite \u00b7 MySQL" + "     " + FG_GREEN + BOLD + "│" + RESET);
     out.println(DIM + "  └────────────────────────────────────────────────────────────┘" + RESET);
     out.println();
