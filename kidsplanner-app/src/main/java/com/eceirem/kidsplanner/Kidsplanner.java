@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Scanner;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
 /**
 
@@ -47,6 +49,7 @@ public class Kidsplanner {
   /** Shared with {@link ConsoleUi} in menu mode so {@link Scanner} buffering does not steal keys from menus. */
   private final PushbackInputStream menuStdin;
   private final boolean menuMode;
+  private final Terminal terminal;
   private IRepository<Kid> kidRepository;
   private IRepository<Activity> activityRepository;
 
@@ -70,11 +73,19 @@ public class Kidsplanner {
     if (mm) {
       this.menuStdin = new PushbackInputStream(System.in, 64);
       this.scanner = null;
+      Terminal t = null;
+      try {
+        t = TerminalBuilder.builder().system(true).jna(true).build();
+      } catch (Exception e) {
+        t = null;
+      }
+      this.terminal = t;
       this.menuMode = true;
     } else {
       this.menuStdin = null;
       this.scanner = new Scanner(System.in, StandardCharsets.UTF_8.name());
       this.menuMode = false;
+      this.terminal = null;
     }
     reloadRepositories();
   }
@@ -89,6 +100,7 @@ public class Kidsplanner {
     this.scanner = scanner;
     this.menuStdin = null;
     this.menuMode = false;
+    this.terminal = null;
     reloadRepositories();
   }
 
@@ -106,7 +118,7 @@ public class Kidsplanner {
 
   public void run() {
     try {
-      PrivacyConsent.ensureInteractiveConsent(menuMode ? menuStdin : System.in, menuMode);
+      PrivacyConsent.ensureInteractiveConsent(terminal, menuMode ? menuStdin : System.in, menuMode);
       if (menuMode) {
         runMenuMode();
       } else {
@@ -135,7 +147,7 @@ public class Kidsplanner {
         "Yardim ve format ozeti",
         "Cikis");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Ana Menu", main, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Ana Menu", main, menuStatusLine());
       if (choice == 0) {
         runKidMenu();
       } else if (choice == 1) {
@@ -155,7 +167,7 @@ public class Kidsplanner {
   private void runKidMenu() throws IOException {
     List<String> items = Arrays.asList("Cocuk ekle", "Cocuklari listele", "Cocuk sil", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Cocuk Yonetimi", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Cocuk Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addKidInteractive();
       } else if (choice == 1) {
@@ -182,7 +194,7 @@ public class Kidsplanner {
         "Bugunun programi (sirali)",
         "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Aktivite Yonetimi", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Aktivite Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addActivityInteractiveMenu();
       } else if (choice == 1) {
@@ -209,7 +221,7 @@ public class Kidsplanner {
   private void runStorageMenu() throws IOException {
     List<String> items = Arrays.asList("Binary dosya", "SQLite", "MySQL", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Depolama Motoru", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Depolama Motoru", items, menuStatusLine());
       if (choice == 0) {
         RepositoryFactory.setActiveStorage(StorageType.BINARY);
         reloadRepositories();
@@ -304,7 +316,7 @@ public class Kidsplanner {
     }
     labels.add("Geri (aktivite menusune don)");
     labels.add("+ Yeni cocuk");
-    int idx = ConsoleUi.readMenuChoice(menuStdin, System.out, "Cocuk secin", labels, menuStatusLine());
+    int idx = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Cocuk secin", labels, menuStatusLine());
     int idxGeri = labels.size() - 2;
     int idxYeni = labels.size() - 1;
     if (idx == idxYeni) {
