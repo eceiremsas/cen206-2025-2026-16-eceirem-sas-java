@@ -19,14 +19,29 @@ public class Activity implements HasId<Integer> {
   private String location;
   private String notes;
 
+  /** No-arg constructor for serialization. */
   public Activity() {
   }
 
+  /**
+   * Delegates to {@link #Activity(String, LocalDate, LocalTime, LocalTime, ActivityType, String, String, Integer)}
+   * with {@code kidId == null}.
+   */
   public Activity(String title, LocalDate date, LocalTime startTime, LocalTime endTime, ActivityType type, String location,
       String notes) {
     this(title, date, startTime, endTime, type, location, notes, null);
   }
 
+  /**
+   * @param title activity title
+   * @param date calendar date
+   * @param startTime start time of day
+   * @param endTime end time of day
+   * @param type {@link ActivityType}
+   * @param location optional
+   * @param notes optional
+   * @param kidId owning child id; may be {@code null} until linked
+   */
   public Activity(String title, LocalDate date, LocalTime startTime, LocalTime endTime, ActivityType type, String location,
       String notes, Integer kidId) {
     this.title = title;

@@ -1,0 +1,53 @@
+# Midterm GitHub Release — tetikleyici: tag midterm-v* (örn. midterm-v1.0.0)
+# Rehber: https://ucoruh.github.io/ce204-object-oriented-programming/project-guide/
+name: Midterm GitHub Release
+
+on:
+  push:
+    tags:
+      - 'midterm-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Maven verify (tests + JaCoCo)
+        run: mvn -B -f kidsplanner-app/pom.xml clean verify
+
+      - name: Package release assets
+        shell: bash
+        run: |
+          cp kidsplanner-app/target/kidsplanner-app-1.0-SNAPSHOT.jar kidsplanner.jar
+          tar -czvf linux-test-coverage-report.tar.gz -C kidsplanner-app/target/site/jacoco .
+          tar -czvf linux-test-results-report.tar.gz -C kidsplanner-app/target/surefire-reports .
+
+      - name: Create GitHub Release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Midterm ${{ github.ref_name }}
+          body: |
+            **CEN206 midterm** — otomatik üretilen teslim paketi (Ubuntu runner).
+
+            Eklenen dosyalar:
+            - `kidsplanner.jar` — çalıştırılabilir derleme çıktısı
+            - `linux-test-coverage-report.tar.gz` — JaCoCo HTML raporu
+            - `linux-test-results-report.tar.gz` — Surefire test sonuçları (XML/HTML)
+
+            Rehberde istenen ek Windows paketleri varsa, yerel Windows/WSL build ile ayrıca eklenebilir.
+          files: |
+            kidsplanner.jar
+            linux-test-coverage-report.tar.gz
+            linux-test-results-report.tar.gz

@@ -17,12 +17,15 @@ package com.eceirem.kidsplanner;
  * @class KidsplannerApp
  * @brief This class represents the main application class for the Kidsplanner
  *        App.
- * @details The KidsplannerApp class provides the entry point for the Kidsplanner
- *          App. It initializes the necessary components, performs calculations,
- *          and handles exceptions.
+ * @details Constructs {@link Kidsplanner} and runs the console loop (menu or text mode).
  * @author ugur.coruh
  */
 public class KidsplannerApp {
+  /**
+   * JVM entry point.
+   *
+   * @param args unused in this build
+   */
   public static void main(String[] args) {
     Kidsplanner planner = new Kidsplanner();
     planner.run();
