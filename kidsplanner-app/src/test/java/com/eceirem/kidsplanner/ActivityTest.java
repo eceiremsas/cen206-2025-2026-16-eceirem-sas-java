@@ -110,4 +110,36 @@ public class ActivityTest {
     assertNull(activity.getNotes());
     assertNull(activity.getKidId());
   }
+
+  /**
+   * Seven-arg constructor delegates to eight-arg with {@code kidId == null}.
+   */
+  @Test
+  public void testSevenArgConstructorLeavesKidIdNull() {
+    Activity activity = new Activity(
+        "Reading",
+        LocalDate.of(2026, 6, 1),
+        LocalTime.of(8, 30),
+        LocalTime.of(9, 0),
+        ActivityType.STUDY,
+        "Library",
+        "chapter 3");
+    assertNull(activity.getKidId());
+    assertEquals("Reading", activity.getTitle());
+    assertEquals(ActivityType.STUDY, activity.getType());
+  }
+
+  @Test
+  public void testSetKidIdAfterConstruction() {
+    Activity activity = new Activity(
+        "Sport",
+        LocalDate.of(2026, 6, 2),
+        LocalTime.of(17, 0),
+        LocalTime.of(18, 0),
+        ActivityType.SPORT,
+        "Field",
+        "bring water");
+    activity.setKidId(5);
+    assertEquals(Integer.valueOf(5), activity.getKidId());
+  }
 }
