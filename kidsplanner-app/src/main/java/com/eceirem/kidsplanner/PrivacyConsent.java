@@ -1,3 +1,7 @@
+/**
+ * @file PrivacyConsent.java
+ * @brief Interactive KVKK/GDPR-style consent gate.
+ */
 package com.eceirem.kidsplanner;
 
 import java.io.IOException;
@@ -14,15 +18,19 @@ import org.jline.terminal.Terminal;
  */
 public final class PrivacyConsent {
 
+  /** Local flag file path indicating the user accepted processing. */
   private static final String FLAG = "kidsplanner-consent.flag";
 
+  /** Prevents instantiation. */
   private PrivacyConsent() {
   }
 
+  /** @return {@code true} if the consent flag file exists */
   public static boolean hasConsentFlag() {
     return Files.exists(Paths.get(FLAG));
   }
 
+  /** Creates the on-disk consent flag after successful approval. */
   public static void writeConsentFlag() {
     try {
       Path path = Paths.get(FLAG);

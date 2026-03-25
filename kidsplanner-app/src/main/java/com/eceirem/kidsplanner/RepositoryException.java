@@ -1,9 +1,14 @@
+/**
+ * @file RepositoryException.java
+ * @brief Unchecked persistence/consent errors.
+ */
 package com.eceirem.kidsplanner;
 
 /**
  * Unchecked failure for persistence, consent, or similar non-validation errors.
  */
 public class RepositoryException extends RuntimeException {
+  /** Serialization version. */
   private static final long serialVersionUID = 1L;
 
   /** @param message message for user or logs */

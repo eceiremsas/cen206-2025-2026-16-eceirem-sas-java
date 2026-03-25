@@ -46,6 +46,10 @@ jobs:
       - name: Install Doxygen
         run: sudo apt-get install doxygen -y
         shell: bash
+
+      - name: Install LaTeX for Doxygen PDF
+        run: sudo apt-get install -y texlive-xetex texlive-latex-recommended texlive-latex-extra
+        shell: bash
           
       - name: Install LCOV
         run: sudo apt-get install lcov
@@ -96,6 +100,13 @@ jobs:
         
       - name: Generate Doxygen HTML and XML Documentation
         run: doxygen Doxyfile
+        shell: bash
+
+      - name: Build Doxygen PDF and copy to docs/doxygen
+        run: |
+          make -C kidsplanner-app/target/site/doxygen/latex
+          mkdir -p docs/doxygen
+          cp -f kidsplanner-app/target/site/doxygen/latex/refman.pdf docs/doxygen/refman.pdf
         shell: bash
 
       - name: Generate ReportGenerator HTML Report
@@ -204,6 +215,16 @@ jobs:
           asset_path: ./app-documents.tar.gz
           asset_name: app-documents.tar.gz
           asset_content_type: application/gzip
+        env:
+          GITHUB_TOKEN: ${{ secrets.MAVEN_TEMPLATE_TOKEN }}
+
+      - name: Upload Doxygen API PDF
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_common_release.outputs.upload_url }}
+          asset_path: ./docs/doxygen/refman.pdf
+          asset_name: refman-api.pdf
+          asset_content_type: application/pdf
         env:
           GITHUB_TOKEN: ${{ secrets.MAVEN_TEMPLATE_TOKEN }}
           
