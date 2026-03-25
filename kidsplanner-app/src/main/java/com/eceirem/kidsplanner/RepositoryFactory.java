@@ -62,7 +62,7 @@ public final class RepositoryFactory {
       case MYSQL:
         return new MysqlRepository<Kid>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MysqlRepository.EntityKind.KID);
     }
-    throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
+    throw new RepositoryException("Unsupported storage type: " + activeStorage);
   }
 
   public static IRepository<Activity> createActivityRepository() {
@@ -74,7 +74,7 @@ public final class RepositoryFactory {
       case MYSQL:
         return new MysqlRepository<Activity>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MysqlRepository.EntityKind.ACTIVITY);
     }
-    throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
+    throw new RepositoryException("Unsupported storage type: " + activeStorage);
   }
 
   public static StorageType parseStorageTypeOrNull(String text) {

@@ -113,7 +113,7 @@ public class BinaryRepositoryTest {
     entity.setId(99);
 
     RepositoryException exception = assertThrows(RepositoryException.class, () -> repository.update(entity));
-    assertTrue(exception.getMessage().contains("Guncellenecek kayit bulunamadi"));
+    assertTrue(exception.getMessage().contains("Record to update not found"));
     cleanup(file);
   }
 
@@ -132,7 +132,7 @@ public class BinaryRepositoryTest {
     Activity entity = sample("A", 9, 10);
 
     RepositoryException exception = assertThrows(RepositoryException.class, () -> repository.update(entity));
-    assertTrue(exception.getMessage().contains("Guncellenecek kayit bulunamadi"));
+    assertTrue(exception.getMessage().contains("Record to update not found"));
     cleanup(file);
   }
 
@@ -170,7 +170,7 @@ public class BinaryRepositoryTest {
     Activity activity = sample("A", 9, 10);
 
     RepositoryException exception = assertThrows(RepositoryException.class, () -> repository.save(activity));
-    assertTrue(exception.getMessage().contains("Binary veri yazilamadi"));
+    assertTrue(exception.getMessage().contains("Binary data could not be written"));
   }
 
   /**
