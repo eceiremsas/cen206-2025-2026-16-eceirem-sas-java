@@ -1,3 +1,7 @@
+/**
+ * @file MysqlRepository.java
+ * @brief MySQL {@link IRepository} for {@link Kid} and {@link Activity}.
+ */
 package com.eceirem.kidsplanner;
 
 import java.sql.Connection;
@@ -24,9 +28,13 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     ACTIVITY
   }
 
+  /** JDBC URL including database name. */
   private final String jdbcUrl;
+  /** Database user. */
   private final String username;
+  /** Database password. */
   private final String password;
+  /** Kid vs activity table binding. */
   private final EntityKind kind;
 
   /**
@@ -45,10 +53,12 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     ensureSchema();
   }
 
+  /** Opens a connection using {@link #jdbcUrl} and credentials. */
   private Connection connect() throws SQLException {
     return DriverManager.getConnection(jdbcUrl, username, password);
   }
 
+  /** Creates {@code kid} and {@code activity} tables when missing. */
   private void ensureSchema() {
     try {
       ensureDatabaseExistsIfNeeded();
@@ -156,9 +166,13 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     return "Could not create MySQL schema. Is Docker MySQL running?";
   }
 
+  /**
+   * Routes to {@link #saveKid} or {@link #saveActivity} based on {@link #kind}.
+   *
+   * @param entity row to insert
+   */
   @SuppressWarnings("unchecked")
-  @Override
-  public void save(T entity) {
+  @Override public void save(T entity) {
     if (kind == EntityKind.KID) {
       saveKid((Kid) entity);
     } else {
@@ -166,27 +180,34 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /**
+   * @param id primary key
+   * @return entity or {@code null}
+   */
   @SuppressWarnings("unchecked")
-  @Override
-  public T findById(int id) {
+  @Override public T findById(int id) {
     if (kind == EntityKind.KID) {
       return (T) findKidById(id);
     }
     return (T) findActivityById(id);
   }
 
+  /** @return all rows for this repository kind */
   @SuppressWarnings("unchecked")
-  @Override
-  public List<T> findAll() {
+  @Override public List<T> findAll() {
     if (kind == EntityKind.KID) {
       return (List<T>) findAllKids();
     }
     return (List<T>) findAllActivities();
   }
 
+  /**
+   * Routes to {@link #updateKid} or {@link #updateActivity}.
+   *
+   * @param entity row with non-null id
+   */
   @SuppressWarnings("unchecked")
-  @Override
-  public void update(T entity) {
+  @Override public void update(T entity) {
     if (kind == EntityKind.KID) {
       updateKid((Kid) entity);
     } else {
@@ -194,8 +215,12 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
-  @Override
-  public void delete(int id) {
+  /**
+   * Deletes by id; for {@link EntityKind#KID}, removes linked activities first.
+   *
+   * @param id primary key
+   */
+  @Override public void delete(int id) {
     try (Connection connection = connect()) {
       if (kind == EntityKind.KID) {
         try (PreparedStatement deleteActivities = connection.prepareStatement("DELETE FROM activity WHERE kid_id = ?")) {
@@ -217,6 +242,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Inserts a {@link Kid} row and sets generated id. */
   private void saveKid(Kid kid) {
     String sql = "INSERT INTO kid (display_name, birth_year, notes) VALUES (?,?,?)";
     try (Connection connection = connect();
@@ -239,6 +265,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Inserts an {@link Activity} row and sets generated id. */
   private void saveActivity(Activity activity) {
     String sql = "INSERT INTO activity (kid_id,title,act_date,start_time,end_time,type,location,notes) VALUES (?,?,?,?,?,?,?,?)";
     try (Connection connection = connect();
@@ -262,6 +289,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Loads one kid by primary key. */
   private Kid findKidById(int id) {
     String sql = "SELECT id, display_name, birth_year, notes FROM kid WHERE id = ?";
     try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -277,6 +305,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Loads one activity by primary key. */
   private Activity findActivityById(int id) {
     String sql =
         "SELECT id, kid_id, title, act_date, start_time, end_time, type, location, notes FROM activity WHERE id = ?";
@@ -293,6 +322,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Returns all kids ordered by id. */
   private List<Kid> findAllKids() {
     List<Kid> list = new ArrayList<Kid>();
     String sql = "SELECT id, display_name, birth_year, notes FROM kid ORDER BY id";
@@ -308,6 +338,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     return list;
   }
 
+  /** Returns all activities ordered by date and time. */
   private List<Activity> findAllActivities() {
     List<Activity> list = new ArrayList<Activity>();
     String sql =
@@ -324,6 +355,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     return list;
   }
 
+  /** Updates an existing kid row. */
   private void updateKid(Kid kid) {
     if (kid.getId() == null) {
       throw new RepositoryException("Kid id missing for update.");
@@ -346,6 +378,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Updates an existing activity row. */
   private void updateActivity(Activity activity) {
     if (activity.getId() == null) {
       throw new RepositoryException("Activity id missing for update.");
@@ -370,6 +403,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Maps a {@code kid} row to a {@link Kid}. */
   private Kid mapKid(ResultSet resultSet) throws SQLException {
     Kid kid = new Kid();
     kid.setId(resultSet.getInt("id"));
@@ -384,6 +418,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     return kid;
   }
 
+  /** Maps an {@code activity} row to an {@link Activity}. */
   private Activity mapActivity(ResultSet resultSet) throws SQLException {
     Activity activity = new Activity();
     activity.setId(resultSet.getInt("id"));

@@ -1,3 +1,7 @@
+/**
+ * @file RepositoryFactory.java
+ * @brief Creates repositories for the active {@link StorageType}.
+ */
 package com.eceirem.kidsplanner;
 
 import java.util.Locale;
@@ -7,13 +11,20 @@ import java.util.Locale;
  */
 public final class RepositoryFactory {
 
+  /** Guards static configuration fields. */
   private static final Object LOCK = new Object();
+  /** Currently selected backend. */
   private static volatile StorageType activeStorage = StorageType.BINARY;
+  /** JDBC URL for SQLite when that backend is active. */
   private static volatile String sqliteJdbcUrl = "jdbc:sqlite:kidsplanner.db";
+  /** JDBC URL for MySQL. */
   private static volatile String mysqlJdbcUrl = defaultMysqlUrl();
+  /** MySQL user name. */
   private static volatile String mysqlUser = defaultMysqlUser();
+  /** MySQL password. */
   private static volatile String mysqlPassword = defaultMysqlPassword();
 
+  /** Prevents instantiation. */
   private RepositoryFactory() {
   }
 
@@ -28,14 +39,17 @@ public final class RepositoryFactory {
     }
   }
 
+  /** @return default JDBC URL for local MySQL */
   private static String defaultMysqlUrl() {
     return "jdbc:mysql://localhost:3306/kidsplanner?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
   }
 
+  /** @return default MySQL user */
   private static String defaultMysqlUser() {
     return "root";
   }
 
+  /** @return default MySQL password */
   private static String defaultMysqlPassword() {
     return "kidsplanner";
   }

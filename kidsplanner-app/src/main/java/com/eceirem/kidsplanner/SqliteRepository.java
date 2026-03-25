@@ -1,3 +1,7 @@
+/**
+ * @file SqliteRepository.java
+ * @brief SQLite {@link IRepository} for {@link Kid} and {@link Activity}.
+ */
 package com.eceirem.kidsplanner;
 
 import java.sql.Connection;
@@ -24,7 +28,9 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     ACTIVITY
   }
 
+  /** JDBC URL (e.g. {@code jdbc:sqlite:kidsplanner.db}). */
   private final String jdbcUrl;
+  /** Kid vs activity table binding. */
   private final EntityKind kind;
 
   /**
@@ -39,10 +45,12 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     ensureSchema();
   }
 
+  /** Opens a SQLite connection. */
   private Connection connect() throws SQLException {
     return DriverManager.getConnection(jdbcUrl);
   }
 
+  /** Creates {@code kid} and {@code activity} tables when missing. */
   private void ensureSchema() {
     try (Connection connection = connect(); Statement statement = connection.createStatement()) {
       statement.executeUpdate(
@@ -68,9 +76,13 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /**
+   * Routes to {@link #saveKid} or {@link #saveActivity} based on {@link #kind}.
+   *
+   * @param entity row to insert
+   */
   @SuppressWarnings("unchecked")
-  @Override
-  public void save(T entity) {
+  @Override public void save(T entity) {
     if (kind == EntityKind.KID) {
       saveKid((Kid) entity);
     } else {
@@ -78,27 +90,34 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /**
+   * @param id primary key
+   * @return entity or {@code null}
+   */
   @SuppressWarnings("unchecked")
-  @Override
-  public T findById(int id) {
+  @Override public T findById(int id) {
     if (kind == EntityKind.KID) {
       return (T) findKidById(id);
     }
     return (T) findActivityById(id);
   }
 
+  /** @return all rows for this repository kind */
   @SuppressWarnings("unchecked")
-  @Override
-  public List<T> findAll() {
+  @Override public List<T> findAll() {
     if (kind == EntityKind.KID) {
       return (List<T>) findAllKids();
     }
     return (List<T>) findAllActivities();
   }
 
+  /**
+   * Routes to {@link #updateKid} or {@link #updateActivity}.
+   *
+   * @param entity row with non-null id
+   */
   @SuppressWarnings("unchecked")
-  @Override
-  public void update(T entity) {
+  @Override public void update(T entity) {
     if (kind == EntityKind.KID) {
       updateKid((Kid) entity);
     } else {
@@ -106,8 +125,12 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
-  @Override
-  public void delete(int id) {
+  /**
+   * Deletes by id; for {@link EntityKind#KID}, removes linked activities first.
+   *
+   * @param id primary key
+   */
+  @Override public void delete(int id) {
     try (Connection connection = connect()) {
       if (kind == EntityKind.KID) {
         try (PreparedStatement deleteActivities = connection.prepareStatement("DELETE FROM activity WHERE kid_id = ?")) {
@@ -129,6 +152,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /** Inserts a {@link Kid} row and sets generated id. */
   private void saveKid(Kid kid) {
     String sql = "INSERT INTO kid (display_name, birth_year, notes) VALUES (?,?,?)";
     try (Connection connection = connect();
@@ -151,6 +175,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /** Inserts an {@link Activity} row and sets generated id. */
   private void saveActivity(Activity activity) {
     String sql = "INSERT INTO activity (kid_id,title,act_date,start_time,end_time,type,location,notes) VALUES (?,?,?,?,?,?,?,?)";
     try (Connection connection = connect();
@@ -174,6 +199,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /** Loads one kid by primary key. */
   private Kid findKidById(int id) {
     String sql = "SELECT id, display_name, birth_year, notes FROM kid WHERE id = ?";
     try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -189,6 +215,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /** Loads one activity by primary key. */
   private Activity findActivityById(int id) {
     String sql =
         "SELECT id, kid_id, title, act_date, start_time, end_time, type, location, notes FROM activity WHERE id = ?";
@@ -205,6 +232,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /** Returns all kids ordered by id. */
   private List<Kid> findAllKids() {
     List<Kid> list = new ArrayList<Kid>();
     String sql = "SELECT id, display_name, birth_year, notes FROM kid ORDER BY id";
@@ -220,6 +248,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     return list;
   }
 
+  /** Returns all activities ordered by date and time. */
   private List<Activity> findAllActivities() {
     List<Activity> list = new ArrayList<Activity>();
     String sql =
@@ -236,6 +265,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     return list;
   }
 
+  /** Updates an existing kid row. */
   private void updateKid(Kid kid) {
     if (kid.getId() == null) {
       throw new RepositoryException("Kid id missing for update.");
@@ -258,6 +288,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /** Updates an existing activity row. */
   private void updateActivity(Activity activity) {
     if (activity.getId() == null) {
       throw new RepositoryException("Activity id missing for update.");
@@ -282,6 +313,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     }
   }
 
+  /** Maps a {@code kid} row to a {@link Kid}. */
   private Kid mapKid(ResultSet resultSet) throws SQLException {
     Kid kid = new Kid();
     kid.setId(resultSet.getInt("id"));
@@ -296,6 +328,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
     return kid;
   }
 
+  /** Maps an {@code activity} row to an {@link Activity}. */
   private Activity mapActivity(ResultSet resultSet) throws SQLException {
     Activity activity = new Activity();
     activity.setId(resultSet.getInt("id"));

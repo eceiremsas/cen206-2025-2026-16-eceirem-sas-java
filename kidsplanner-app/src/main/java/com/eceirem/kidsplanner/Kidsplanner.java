@@ -56,10 +56,15 @@ public class Kidsplanner {
   private final Scanner scanner;
   /** Shared with {@link ConsoleUi} in menu mode so java.util.Scanner buffering does not steal keys from menus. */
   private final PushbackInputStream menuStdin;
+  /** {@code true} when interactive menu UI is enabled. */
   private final boolean menuMode;
+  /** JLine terminal in menu mode; may be {@code null}. */
   private final Terminal terminal;
+  /** Line reader when terminal is available. */
   private final LineReader lineReader;
+  /** Active {@link Kid} repository. */
   private IRepository<Kid> kidRepository;
+  /** Active {@link Activity} repository. */
   private IRepository<Activity> activityRepository;
 
   /**
@@ -77,6 +82,7 @@ public class Kidsplanner {
     return os.contains("win");
   }
 
+  /** Builds stdin/terminal wiring for menu mode or text mode. */
   public Kidsplanner() {
     if ("true".equalsIgnoreCase(System.getProperty(PROP_MENU_MODE_TEST))) {
       this.menuStdin = new PushbackInputStream(System.in, 64);
@@ -120,6 +126,12 @@ public class Kidsplanner {
     reloadRepositories();
   }
 
+  /**
+   * Test-friendly constructor using a {@link Scanner} (no JLine).
+   *
+   * @param scanner non-null stdin for text commands
+   * @param menuMode must be {@code false}
+   */
   public Kidsplanner(Scanner scanner, boolean menuMode) {
     if (menuMode) {
       throw new IllegalArgumentException("Menu mode uses default constructor only (real console).");
@@ -135,6 +147,7 @@ public class Kidsplanner {
     reloadRepositories();
   }
 
+  /** Reads one input line using JLine, pushback UTF-8, or {@link Scanner}. */
   private String nextLine() throws IOException {
     if (menuMode) {
       if (lineReader != null) {
@@ -146,11 +159,13 @@ public class Kidsplanner {
     return scanner.nextLine();
   }
 
+  /** Recreates repositories from {@link RepositoryFactory} (after storage switch). */
   private void reloadRepositories() {
     this.kidRepository = RepositoryFactory.createKidRepository();
     this.activityRepository = RepositoryFactory.createActivityRepository();
   }
 
+  /** Entry point: consent, then menu or text loop until exit. */
   public void run() {
     try {
       PrivacyConsent.ensureInteractiveConsent(terminal, menuMode ? menuStdin : System.in, menuMode);
@@ -167,6 +182,7 @@ public class Kidsplanner {
     System.out.println("Application closed.");
   }
 
+  /** Compact status for menu footers (storage + counts). */
   private String menuStatusLine() {
     int nk = kidRepository.findAll().size();
     int na = activityRepository.findAll().size();
@@ -174,6 +190,7 @@ public class Kidsplanner {
     return "Storage: " + st.name() + "  |  Kids: " + nk + "  |  Activities: " + na;
   }
 
+  /** Top-level interactive menu. */
   private void runMenuMode() throws IOException {
     List<String> main = Arrays.asList(
         "Kid management",
@@ -199,6 +216,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Kid CRUD submenu. */
   private void runKidMenu() throws IOException {
     List<String> items = Arrays.asList("Add kid", "List kids", "Delete kid", "Back");
     while (true) {
@@ -220,6 +238,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Activity CRUD and “today plan” submenu. */
   private void runActivityMenu() throws IOException {
     List<String> items = Arrays.asList(
         "Add activity",
@@ -253,6 +272,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Storage backend selection submenu. */
   private void runStorageMenu() throws IOException {
     List<String> items = Arrays.asList("Binary file", "SQLite", "MySQL", "Back");
     while (true) {
@@ -270,6 +290,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Switches {@link RepositoryFactory} storage with on-screen feedback and rollback on error. */
   private void switchStorageWithUi(StorageType target) throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
@@ -305,6 +326,7 @@ public class Kidsplanner {
     nextLine();
   }
 
+  /** Prints short pros/cons for the active storage type. */
   private void explainStorage(StorageType storage) {
     if (storage == StorageType.BINARY) {
       System.out.println("Binary (files): writes to kidsplanner-kids.bin and kidsplanner-activities.bin.");
@@ -318,6 +340,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Menu flow: add {@link Kid} with prompts. */
   private void addKidInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
@@ -342,6 +365,7 @@ public class Kidsplanner {
     nextLine();
   }
 
+  /** Menu flow: delete kid by id (and linked activities in DB backends). */
   private void deleteKidInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
@@ -355,6 +379,7 @@ public class Kidsplanner {
     nextLine();
   }
 
+  /** Menu flow: create {@link Activity} for a chosen kid. */
   private void addActivityInteractiveMenu() throws IOException {
     int kidId = pickKidIdForMenu();
     if (kidId < 0) {
@@ -371,6 +396,7 @@ public class Kidsplanner {
     nextLine();
   }
 
+  /** Lets the user pick a kid id from a menu (or create one). */
   private int pickKidIdForMenu() throws IOException {
     List<Kid> kids = new ArrayList<Kid>(kidRepository.findAll());
     if (kids.isEmpty()) {
@@ -410,6 +436,7 @@ public class Kidsplanner {
     return kids.get(idx).getId();
   }
 
+  /** Menu flow: update an existing activity by id. */
   private void updateActivityInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
@@ -430,6 +457,7 @@ public class Kidsplanner {
     nextLine();
   }
 
+  /** Menu flow: delete activity by id. */
   private void deleteActivityInteractive() throws IOException {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
@@ -443,6 +471,7 @@ public class Kidsplanner {
     nextLine();
   }
 
+  /** Prompts for activity fields when kid id is already known (menu add flow). */
   private Activity readActivityBodyFromScanner(Activity base, int kidId) throws IOException {
     String title = ask("Title", base == null ? "" : base.getTitle());
     if (title == null || title.trim().isEmpty()) {
@@ -473,6 +502,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Command-line text loop for CI and piped stdin. */
   private void runTextMode() {
     System.out.println("=== Kids Activity Planner (text mode) ===");
     boolean running = true;
@@ -528,6 +558,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Parses {@code storage <backend>} in text mode. */
   private void handleStorageCommand(String cmd) {
     String[] parts = cmd.split("\\s+");
     if (parts.length < 2) {
@@ -545,6 +576,7 @@ public class Kidsplanner {
     System.out.println(RepositoryFactory.describeJdbcTargets());
   }
 
+  /** Text mode: add kid from prompts. */
   private void addKidText() throws IOException {
     System.out.print("Display name: ");
     String name = nextLine().trim();
@@ -564,6 +596,7 @@ public class Kidsplanner {
     System.out.println("Kid added. ID = " + kid.getId());
   }
 
+  /** Text mode: delete kid by id. */
   private void deleteKidText() throws IOException {
     System.out.print("Kid ID to delete: ");
     int id = Integer.parseInt(nextLine().trim());
@@ -571,6 +604,7 @@ public class Kidsplanner {
     System.out.println("Kid deleted (if it existed).");
   }
 
+  /** Prints available text commands. */
   private void printTextMenu() {
     System.out.println();
     System.out.println("Commands (no number entry):");
@@ -587,6 +621,7 @@ public class Kidsplanner {
     System.out.print(">> ");
   }
 
+  /** Short reference for formats and overlap rule. */
   private void showHelp() {
     System.out.println("Date format: yyyy-MM-dd");
     System.out.println("Time format: HH:mm");
@@ -596,6 +631,7 @@ public class Kidsplanner {
     System.out.println(RepositoryFactory.describeJdbcTargets());
   }
 
+  /** Full-screen checklist of course requirements. */
   private void showHelpMenu() {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
@@ -618,6 +654,7 @@ public class Kidsplanner {
     System.out.println("  Note: if Storage > MySQL shows schema errors, start MySQL with Docker first.");
   }
 
+  /** Text mode: add activity with prompts. */
   private void addActivity() throws IOException {
     Activity activity = readActivityFields(null);
     validateActivity(activity, -1);
@@ -625,6 +662,7 @@ public class Kidsplanner {
     System.out.println("Activity added. ID = " + activity.getId());
   }
 
+  /** Text mode: update activity by id. */
   private void updateActivity() throws IOException {
     System.out.print("ID to update: ");
     int id = Integer.parseInt(nextLine().trim());
@@ -639,6 +677,7 @@ public class Kidsplanner {
     System.out.println("Activity updated.");
   }
 
+  /** Text mode: delete activity by id. */
   private void deleteActivity() throws IOException {
     System.out.print("ID to delete: ");
     int id = Integer.parseInt(nextLine().trim());
@@ -646,6 +685,7 @@ public class Kidsplanner {
     System.out.println("Activity deleted (if it existed).");
   }
 
+  /** Lists activities (table in menu mode, plain lines in text mode). */
   private void listActivities() {
     List<Activity> activities = new ArrayList<Activity>(activityRepository.findAll());
     sortActivities(activities);
@@ -662,10 +702,12 @@ public class Kidsplanner {
     }
   }
 
+  /** Delegates to {@link #listActivities()} for menu screens. */
   private void listActivitiesPlain() {
     listActivities();
   }
 
+  /** Lists kids sorted by id. */
   private void listKidsPlain() {
     List<Kid> kids = new ArrayList<Kid>(kidRepository.findAll());
     Collections.sort(kids, new Comparator<Kid>() {
@@ -687,6 +729,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Activities for {@link LocalDate#today()} sorted by time. */
   private void listTodayPlan() {
     LocalDate today = LocalDate.now();
     List<Activity> activities = new ArrayList<Activity>();
@@ -716,6 +759,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Sorts by date, start time, then id. */
   private void sortActivities(List<Activity> activities) {
     Collections.sort(activities, new Comparator<Activity>() {
       @Override
@@ -733,6 +777,7 @@ public class Kidsplanner {
     });
   }
 
+  /** Prompts for all activity fields (shared by text add/update). */
   private Activity readActivityFields(Activity base) throws IOException {
     String kidDefault = "";
     if (base != null && base.getKidId() != null) {
@@ -768,6 +813,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Parses kid id line; empty picks default/first or creates placeholder kid. */
   private int resolveKidIdFromLine(String line) {
     String trimmed = line == null ? "" : line.trim();
     if (trimmed.isEmpty()) {
@@ -793,6 +839,7 @@ public class Kidsplanner {
     return id;
   }
 
+  /** Prompt with optional bracketed default; empty input returns default. */
   private String ask(String label, String defaultValue) throws IOException {
     String def = defaultValue == null ? "" : defaultValue;
     System.out.print(label + (def.isEmpty() ? "" : " [" + def + "]") + ": ");
@@ -800,6 +847,7 @@ public class Kidsplanner {
     return value.isEmpty() ? def : value;
   }
 
+  /** Enforces title, kid, time order, and same-day overlap per kid. */
   private void validateActivity(Activity candidate, int currentId) {
     if (candidate.getTitle() == null || candidate.getTitle().trim().isEmpty()) {
       throw new ValidationException("Title cannot be empty.");
@@ -828,6 +876,7 @@ public class Kidsplanner {
     }
   }
 
+  /** Half-open interval overlap on second-of-day scale. */
   private boolean overlaps(int startA, int endA, int startB, int endB) {
     return startA < endB && startB < endA;
   }
