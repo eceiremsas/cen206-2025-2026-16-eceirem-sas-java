@@ -1,3 +1,7 @@
+/**
+ * @file HasId.java
+ * @brief Identifier contract for persisted entities.
+ */
 package com.eceirem.kidsplanner;
 
 import java.io.Serializable;

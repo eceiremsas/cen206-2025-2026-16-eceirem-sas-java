@@ -1,3 +1,7 @@
+/**
+ * @file ActivityType.java
+ * @brief Activity category enum.
+ */
 package com.eceirem.kidsplanner;
 
 /**

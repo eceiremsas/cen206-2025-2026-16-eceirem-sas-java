@@ -72,6 +72,7 @@
 		
 				<menu name="Document Coverage">
 				<item name="Doxygen Report" href="./doxygen/html/index.html" />
+				<item name="Doxygen API (PDF)" href="./refman-api.pdf" />
 				<item name="Coverxygen Report" href="./coverxygen/index.html" />
 				<!-- Add more items for other HTML pages if needed -->
 		</menu>

@@ -1,3 +1,7 @@
+/**
+ * @file BinaryRepository.java
+ * @brief {@link IRepository} backed by Java serialization to one file.
+ */
 package com.eceirem.kidsplanner;
 
 import java.io.FileInputStream;
@@ -16,8 +20,11 @@ import java.util.Map;
  * @param <T> {@link Kid} or {@link Activity}
  */
 public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T> {
+  /** Path to the binary store file. */
   private final String filePath;
+  /** In-memory entities keyed by id. */
   private final Map<Integer, T> data;
+  /** Monotonic id generator for new saves. */
   private int nextId;
 
   /**
@@ -31,25 +38,34 @@ public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T
     this.nextId = calculateNextId(this.data);
   }
 
-  @Override
-  public void save(T entity) {
+  /**
+   * Assigns the next id, stores the entity, and flushes to disk.
+   *
+   * @param entity entity to store
+   */
+  @Override public void save(T entity) {
     entity.setId(nextId++);
     data.put(entity.getId(), entity);
     persist();
   }
 
-  @Override
-  public T findById(int id) {
+  /** @param id primary key
+   *  @return entity or {@code null} if missing */
+  @Override public T findById(int id) {
     return data.get(id);
   }
 
-  @Override
-  public List<T> findAll() {
+  /** @return all entities (order undefined) */
+  @Override public List<T> findAll() {
     return new ArrayList<T>(data.values());
   }
 
-  @Override
-  public void update(T entity) {
+  /**
+   * Replaces state for an existing id.
+   *
+   * @param entity entity with non-null id
+   */
+  @Override public void update(T entity) {
     Integer id = entity.getId();
     if (id == null || !data.containsKey(id)) {
       throw new RepositoryException("Guncellenecek kayit bulunamadi.");
@@ -58,12 +74,17 @@ public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T
     persist();
   }
 
-  @Override
-  public void delete(int id) {
+  /** @param id primary key to remove */
+  @Override public void delete(int id) {
     data.remove(id);
     persist();
   }
 
+  /**
+   * Deserializes the map from {@link #filePath}, or returns an empty map if missing or invalid.
+   *
+   * @return stored entities
+   */
   @SuppressWarnings("unchecked")
   private Map<Integer, T> loadData() {
     try (ObjectInputStream input = new ObjectInputStream(new FileInputStream(filePath))) {
@@ -75,6 +96,7 @@ public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T
     }
   }
 
+  /** @return one greater than max existing id */
   private int calculateNextId(Map<Integer, T> currentData) {
     int max = 0;
     for (Integer id : currentData.keySet()) {
@@ -85,6 +107,7 @@ public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T
     return max + 1;
   }
 
+  /** Writes {@link #data} to {@link #filePath}. */
   private void persist() {
     try (ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(filePath))) {
       output.writeObject(data);

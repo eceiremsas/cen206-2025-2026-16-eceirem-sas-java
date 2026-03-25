@@ -1,3 +1,7 @@
+/**
+ * @file ConsoleUi.java
+ * @brief ANSI console styling and keyboard-driven menus.
+ */
 package com.eceirem.kidsplanner;
 
 import java.io.ByteArrayOutputStream;
@@ -21,36 +25,60 @@ import org.jline.utils.NonBlockingReader;
  */
 public final class ConsoleUi {
 
+  /** ANSI SGR reset. */
   public static final String RESET = "\u001B[0m";
+  /** Bold style on. */
   public static final String BOLD = "\u001B[1m";
+  /** Dim / faint style. */
   public static final String DIM = "\u001B[2m";
+  /** Foreground cyan. */
   public static final String FG_CYAN = "\u001B[36m";
+  /** Foreground green. */
   public static final String FG_GREEN = "\u001B[32m";
+  /** Foreground yellow. */
   public static final String FG_YELLOW = "\u001B[33m";
+  /** Foreground magenta. */
   public static final String FG_MAGENTA = "\u001B[35m";
+  /** Foreground bright white. */
   public static final String FG_WHITE = "\u001B[97m";
+  /** Foreground blue. */
   public static final String FG_BLUE = "\u001B[34m";
+  /** Foreground red. */
   public static final String FG_RED = "\u001B[31m";
+  /** Background blue. */
   public static final String BG_BLUE = "\u001B[44m";
+  /** Box-drawing horizontal line. */
   private static final String HLINE = "\u2500";
+  /** Box-drawing vertical line. */
   private static final String VLINE = "\u2502";
+  /** Top-left box corner. */
   private static final String TLC = "\u250c";
+  /** Top-right box corner. */
   private static final String TRC = "\u2510";
+  /** Bottom-left box corner. */
   private static final String BLC = "\u2514";
+  /** Bottom-right box corner. */
   private static final String BRC = "\u2518";
+  /** Tee junction (left). */
   private static final String TEE_L = "\u251c";
+  /** Tee junction (right). */
   private static final String TEE_R = "\u2524";
+  /** Table cross junction. */
   private static final String CROSS = "\u253c";
+  /** Time formatting for tables. */
   private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT);
 
+  /** Prevents instantiation. */
   private ConsoleUi() {
   }
 
+  /** Clears the screen and moves the cursor home (ANSI). */
   public static void clearScreen(PrintStream out) {
     out.print("\u001B[2J\u001B[H");
     out.flush();
   }
 
+  /** Prints the application banner and optional Windows UTF-8 hint. */
   public static void printBanner(PrintStream out) {
     out.println();
     out.println(DIM + "  ┌────────────────────────────────────────────────────────────┐" + RESET);
@@ -65,20 +93,24 @@ public final class ConsoleUi {
     }
   }
 
+  /** Horizontal rule for visual separation. */
   public static void rule(PrintStream out) {
     out.println(DIM + "  " + repeat(HLINE, 58) + RESET);
   }
 
+  /** Section title with highlighted bar. */
   public static void title(PrintStream out, String text) {
     out.println();
     out.println("  " + FG_WHITE + BG_BLUE + BOLD + " " + text + " " + RESET);
     rule(out);
   }
 
+  /** Dimmed single line (secondary text). */
   public static void muted(PrintStream out, String text) {
     out.println(DIM + "  " + text + RESET);
   }
 
+  /** Success / confirmation line in green. */
   public static void successLine(PrintStream out, String text) {
     out.println("  " + FG_GREEN + text + RESET);
   }
@@ -124,6 +156,7 @@ public final class ConsoleUi {
     return readMenuChoice(fallbackIn, out, title, options, statusLine);
   }
 
+  /** JLine-based menu when a real terminal is available. */
   private static int readMenuChoiceJline(Terminal terminal, PrintStream out, String title, List<String> options,
       String statusLine) throws IOException {
     if (options.isEmpty()) {
@@ -329,6 +362,7 @@ public final class ConsoleUi {
     }
   }
 
+  /** Draws a framed menu with a highlighted option row. */
   private static void drawMenuBox(PrintStream out, String title, List<String> options, int selectedIndex) {
     int inner = Math.max(title.length(), 12);
     for (String o : options) {
@@ -365,6 +399,7 @@ public final class ConsoleUi {
     out.println(BLC + repeat(HLINE, inner + 2) + BRC);
   }
 
+  /** Repeats a string {@code n} times (for box drawing). */
   private static String repeat(String ch, int n) {
     StringBuilder sb = new StringBuilder(n * ch.length());
     for (int i = 0; i < n; i++) {
@@ -373,6 +408,7 @@ public final class ConsoleUi {
     return sb.toString();
   }
 
+  /** Prints {@link Kid} rows as a UTF-8 table. */
   public static void printKidTable(PrintStream out, List<Kid> kids) {
     if (kids.isEmpty()) {
       muted(out, "(cocuk kaydi yok)");
@@ -399,6 +435,7 @@ public final class ConsoleUi {
     printTableBottom(out, w);
   }
 
+  /** Prints {@link Activity} rows as a UTF-8 table. */
   public static void printActivityTable(PrintStream out, List<Activity> activities) {
     if (activities.isEmpty()) {
       muted(out, "(aktivite yok)");
@@ -425,6 +462,7 @@ public final class ConsoleUi {
     printTableBottom(out, w);
   }
 
+  /** Top border for a column-width table. */
   private static void printTableTop(PrintStream out, int[] widths) {
     out.print("  ");
     out.print(TLC);
@@ -437,6 +475,7 @@ public final class ConsoleUi {
     out.println(TRC);
   }
 
+  /** Separator row between header and body. */
   private static void printTableSep(PrintStream out, int[] widths) {
     out.print("  ");
     out.print(TEE_L);
@@ -449,6 +488,7 @@ public final class ConsoleUi {
     out.println(TEE_R);
   }
 
+  /** Bottom border closing the table. */
   private static void printTableBottom(PrintStream out, int[] widths) {
     out.print("  ");
     out.print(BLC);
@@ -461,10 +501,12 @@ public final class ConsoleUi {
     out.println(BRC);
   }
 
+  /** Data row using default (non-header) styling. */
   private static void printTableRow(PrintStream out, int[] widths, String[] cells) {
     printTableRow(out, widths, cells, false);
   }
 
+  /** Prints one row; {@code header} uses yellow emphasis. */
   private static void printTableRow(PrintStream out, int[] widths, String[] cells, boolean header) {
     out.print("  ");
     out.print(VLINE);
@@ -484,6 +526,7 @@ public final class ConsoleUi {
     out.println();
   }
 
+  /** Pads or truncates cell text to a fixed display width. */
   private static String padCell(String cell, int width) {
     String t = cell == null ? "" : cell;
     if (t.length() > width) {
@@ -496,6 +539,7 @@ public final class ConsoleUi {
     return sb.toString();
   }
 
+  /** Truncates with ellipsis; null becomes empty. */
   private static String truncate(String s, int max) {
     if (s == null) {
       return "";
@@ -506,13 +550,21 @@ public final class ConsoleUi {
     return s.substring(0, Math.max(0, max - 1)) + "\u2026";
   }
 
+  /** Internal navigation: no-op. */
   private static final int NAV_NONE = 0;
+  /** Move selection up. */
   private static final int NAV_UP = 1;
+  /** Move selection down. */
   private static final int NAV_DOWN = 2;
+  /** Jump to first item. */
   private static final int NAV_HOME = 3;
+  /** Jump to last item. */
   private static final int NAV_END = 4;
+  /** Page up in long lists. */
   private static final int NAV_PGUP = 5;
+  /** Page down in long lists. */
   private static final int NAV_PGDN = 6;
+  /** User requested quit / back. */
   private static final int NAV_QUIT = 7;
 
   /** Windows ReadConsole scan codes after 0x00 / 0xE0 prefix (arrow keys, etc.). */
@@ -539,6 +591,7 @@ public final class ConsoleUi {
     }
   }
 
+  /** Applies a navigation code to the current menu index. */
   private static int applyNav(int nav, int index, int size) {
     if (nav == NAV_UP) {
       return (index - 1 + size) % size;
@@ -641,6 +694,7 @@ public final class ConsoleUi {
     return readCsiNavigation(in);
   }
 
+  /** Reads one Unicode code point from UTF-8, or raw byte if invalid; used after pushback. */
   private static int readUtf8Byte(InputStream in, byte[] single) throws IOException {
     int first = in.read();
     if (first == -1) {

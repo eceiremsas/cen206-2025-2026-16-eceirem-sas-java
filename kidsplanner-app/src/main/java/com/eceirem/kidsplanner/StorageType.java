@@ -1,3 +1,7 @@
+/**
+ * @file StorageType.java
+ * @brief Persistence backend selector enum.
+ */
 package com.eceirem.kidsplanner;
 
 /**

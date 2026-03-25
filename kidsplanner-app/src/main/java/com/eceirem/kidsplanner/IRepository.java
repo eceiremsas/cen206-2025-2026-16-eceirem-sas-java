@@ -1,3 +1,7 @@
+/**
+ * @file IRepository.java
+ * @brief Generic persistence operations for planner entities.
+ */
 package com.eceirem.kidsplanner;
 
 import java.util.List;
