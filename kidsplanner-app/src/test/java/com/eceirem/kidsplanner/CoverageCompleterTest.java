@@ -32,7 +32,7 @@ public class CoverageCompleterTest {
     Files.deleteIfExists(Paths.get("kidsplanner-consent.flag"));
     Files.deleteIfExists(Paths.get("target/coverage-sqlite.db"));
     Files.deleteIfExists(Paths.get("target/coverage-binary.bin"));
-    RepositoryFactory.setActiveStorage(StorageType.BINARY);
+    RepositoryFactory.resetConfigurationForTests();
   }
 
   @Test
@@ -67,18 +67,10 @@ public class CoverageCompleterTest {
     assertNotNull(RepositoryFactory.createKidRepository());
     assertNotNull(RepositoryFactory.createActivityRepository());
 
-    // MYSQL (may throw if server not running; still exercises switch branches)
+    RepositoryFactory.configureMysql(MysqlTestFixture.jdbcUrl(), MysqlTestFixture.user(), MysqlTestFixture.password());
     RepositoryFactory.setActiveStorage(StorageType.MYSQL);
-    try {
-      RepositoryFactory.createKidRepository();
-    } catch (RepositoryException ex) {
-      assertTrue(ex.getMessage().contains("MySQL") || ex.getMessage().contains("Docker"));
-    }
-    try {
-      RepositoryFactory.createActivityRepository();
-    } catch (RepositoryException ex) {
-      assertTrue(ex.getMessage().contains("MySQL") || ex.getMessage().contains("Docker"));
-    }
+    assertNotNull(RepositoryFactory.createKidRepository());
+    assertNotNull(RepositoryFactory.createActivityRepository());
   }
 
   @Test

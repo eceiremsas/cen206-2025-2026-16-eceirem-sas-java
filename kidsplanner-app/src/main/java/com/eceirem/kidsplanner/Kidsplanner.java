@@ -46,6 +46,12 @@ public class Kidsplanner {
    */
   public static final String PROP_TEXT_MODE = "kidsplanner.text.mode";
 
+  /**
+   * When {@code true}, {@link #Kidsplanner()} builds a dumb JLine terminal over {@link System#in}/{@link System#out}
+   * so menu mode can be exercised in automated tests (no real Windows console required).
+   */
+  public static final String PROP_MENU_MODE_TEST = "kidsplanner.menu.mode.test";
+
   /** Non-null only in text (CI / piped) mode — do not use with raw {@code System.in} when menus run. */
   private final Scanner scanner;
   /** Shared with {@link ConsoleUi} in menu mode so java.util.Scanner buffering does not steal keys from menus. */
@@ -72,6 +78,25 @@ public class Kidsplanner {
   }
 
   public Kidsplanner() {
+    if ("true".equalsIgnoreCase(System.getProperty(PROP_MENU_MODE_TEST))) {
+      this.menuStdin = new PushbackInputStream(System.in, 64);
+      this.scanner = null;
+      Terminal t;
+      try {
+        t = TerminalBuilder.builder()
+            .system(false)
+            .streams(menuStdin, System.out)
+            .dumb(true)
+            .build();
+      } catch (IOException e) {
+        throw new IllegalStateException("menu mode test terminal", e);
+      }
+      this.terminal = t;
+      this.lineReader = LineReaderBuilder.builder().terminal(t).build();
+      this.menuMode = true;
+      reloadRepositories();
+      return;
+    }
     boolean mm = detectMenuMode();
     if (mm) {
       this.menuStdin = new PushbackInputStream(System.in, 64);
