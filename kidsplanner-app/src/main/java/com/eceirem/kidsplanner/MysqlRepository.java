@@ -39,6 +39,15 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
   }
 
   private void ensureSchema() {
+    try {
+      ensureDatabaseExistsIfNeeded();
+      ensureTables();
+    } catch (SQLException e) {
+      throw new RepositoryException(buildFriendlySchemaError(e), e);
+    }
+  }
+
+  private void ensureTables() throws SQLException {
     try (Connection connection = connect(); Statement statement = connection.createStatement()) {
       statement.executeUpdate(
           "CREATE TABLE IF NOT EXISTS kid ("
@@ -60,9 +69,80 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
               + "notes VARCHAR(512) NULL,"
               + "CONSTRAINT fk_activity_kid FOREIGN KEY (kid_id) REFERENCES kid(id))"
               + " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    } catch (SQLException e) {
-      throw new RepositoryException("MySQL sema olusturulamadi. Docker MySQL ayakta mi?", e);
     }
+  }
+
+  /**
+   * If the JDBC URL targets a database that does not exist yet, create it.
+   * This keeps the app working with the provided docker-compose default (MYSQL_DATABASE=kidsplanner)
+   * and also helps when the database was manually deleted.
+   */
+  private void ensureDatabaseExistsIfNeeded() throws SQLException {
+    // Fast path: if connect works, db exists.
+    try (Connection ignored = connect()) {
+      return;
+    } catch (SQLException e) {
+      // MySQL error 1049 = Unknown database
+      if (e.getErrorCode() != 1049) {
+        throw e;
+      }
+      String dbName = parseDatabaseName(jdbcUrl);
+      if (dbName == null || dbName.trim().isEmpty()) {
+        throw e;
+      }
+      String serverUrl = stripDatabaseFromJdbcUrl(jdbcUrl);
+      try (Connection serverConn = DriverManager.getConnection(serverUrl, username, password);
+          Statement st = serverConn.createStatement()) {
+        st.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName + " DEFAULT CHARACTER SET utf8mb4");
+      }
+    }
+  }
+
+  private static String parseDatabaseName(String url) {
+    // Expected: jdbc:mysql://host:port/dbname?params...
+    int scheme = url.indexOf("://");
+    if (scheme < 0) {
+      return null;
+    }
+    int firstSlash = url.indexOf('/', scheme + 3);
+    if (firstSlash < 0) {
+      return null;
+    }
+    int q = url.indexOf('?', firstSlash + 1);
+    String db = q < 0 ? url.substring(firstSlash + 1) : url.substring(firstSlash + 1, q);
+    return db.trim().isEmpty() ? null : db.trim();
+  }
+
+  private static String stripDatabaseFromJdbcUrl(String url) {
+    // Convert jdbc:mysql://host:port/db?x=y -> jdbc:mysql://host:port/?x=y
+    int scheme = url.indexOf("://");
+    if (scheme < 0) {
+      return url;
+    }
+    int firstSlash = url.indexOf('/', scheme + 3);
+    if (firstSlash < 0) {
+      return url;
+    }
+    int q = url.indexOf('?', firstSlash + 1);
+    String params = q < 0 ? "" : url.substring(q);
+    return url.substring(0, firstSlash + 1) + params;
+  }
+
+  private String buildFriendlySchemaError(SQLException e) {
+    // 08xxx: connection issues
+    String state = e.getSQLState();
+    if (state != null && state.startsWith("08")) {
+      return "MySQL baglantisi kurulamadi. Docker MySQL ayakta mi? (docker compose up -d)";
+    }
+    if (e.getErrorCode() == 1049) {
+      String db = parseDatabaseName(jdbcUrl);
+      return "MySQL veritabani bulunamadi: " + (db == null ? "(bilinmiyor)" : db)
+          + ". Docker compose ile DB olusturulmeli (MYSQL_DATABASE).";
+    }
+    if (e.getErrorCode() == 1045) {
+      return "MySQL kimlik dogrulama basarisiz (user/password). Varsayilan: root / kidsplanner.";
+    }
+    return "MySQL sema olusturulamadi. Docker MySQL ayakta mi?";
   }
 
   @SuppressWarnings("unchecked")
