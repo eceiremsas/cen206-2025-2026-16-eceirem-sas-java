@@ -32,15 +32,16 @@ public final class ConsoleUi {
   public static final String FG_BLUE = "\u001B[34m";
   public static final String FG_RED = "\u001B[31m";
   public static final String BG_BLUE = "\u001B[44m";
-  private static final String HLINE = "\u2500";
-  private static final String VLINE = "\u2502";
-  private static final String TLC = "\u250c";
-  private static final String TRC = "\u2510";
-  private static final String BLC = "\u2514";
-  private static final String BRC = "\u2518";
-  private static final String TEE_L = "\u251c";
-  private static final String TEE_R = "\u2524";
-  private static final String CROSS = "\u253c";
+  // ASCII box drawing for maximum compatibility (some Windows shells show Unicode lines as '?').
+  private static final String HLINE = "-";
+  private static final String VLINE = "|";
+  private static final String TLC = "+";
+  private static final String TRC = "+";
+  private static final String BLC = "+";
+  private static final String BRC = "+";
+  private static final String TEE_L = "+";
+  private static final String TEE_R = "+";
+  private static final String CROSS = "+";
   private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT);
 
   private ConsoleUi() {
@@ -53,11 +54,12 @@ public final class ConsoleUi {
 
   public static void printBanner(PrintStream out) {
     out.println();
-    out.println(DIM + "  ┌────────────────────────────────────────────────────────────┐" + RESET);
-    out.println(FG_CYAN + BOLD + "  │" + RESET + "   " + FG_WHITE + BOLD + "KIDS  PLANNER" + RESET + "  "
-        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 Kids Activity Planner Midterm Project" + " " + FG_CYAN + BOLD + "│" + RESET);
-    out.println(FG_GREEN + BOLD + "  │" + RESET + "   " + DIM + "Child & activity management \u00b7 Binary \u00b7 SQLite \u00b7 MySQL" + "     " + FG_GREEN + BOLD + "│" + RESET);
-    out.println(DIM + "  └────────────────────────────────────────────────────────────┘" + RESET);
+    out.println(DIM + "  +------------------------------------------------------------+" + RESET);
+    out.println(FG_CYAN + BOLD + "  |" + RESET + "   " + FG_WHITE + BOLD + "KIDS  PLANNER" + RESET + "  "
+        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 Kids Activity Planner Midterm Project" + " " + FG_CYAN + BOLD + "|" + RESET);
+    out.println(FG_GREEN + BOLD + "  |" + RESET + "   " + DIM + "Child & activity management - Binary - SQLite - MySQL" + "     "
+        + FG_GREEN + BOLD + "|" + RESET);
+    out.println(DIM + "  +------------------------------------------------------------+" + RESET);
     out.println();
     if (System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win")) {
       out.println(DIM + "  (Windows: for colors and UTF-8, Windows Terminal + chcp 65001 is recommended.)" + RESET);
@@ -147,7 +149,7 @@ public final class ConsoleUi {
           out.println("  " + DIM + statusLine + RESET);
           out.println();
         }
-        out.println("  " + DIM + "Arrow keys \u00b7 Tab \u00b7 Enter \u00b7 Esc/Q: exit" + RESET);
+        out.println("  " + DIM + "Arrow keys / Tab / Enter / Esc/Q: exit" + RESET);
         out.flush();
 
         int ch = reader.read();
@@ -231,7 +233,7 @@ public final class ConsoleUi {
         out.println("  " + DIM + statusLine + RESET);
         out.println();
       }
-      out.println("  " + DIM + "Up/down \u00b7 Tab \u00b7 Home/End \u00b7 W/S (fallback) \u00b7 Enter: select" + RESET);
+      out.println("  " + DIM + "Up/down / Tab / Home/End / W/S (fallback) / Enter: select" + RESET);
       out.println("  " + DIM + "Windows cmd: arrows may need W/S; Windows Terminal is recommended." + RESET);
       out.println("  " + DIM + "Exit: choose the last row or press Q" + RESET);
       out.flush();
