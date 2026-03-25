@@ -18,7 +18,8 @@ package com.eceirem.kidsplanner;
  * @brief This class represents the main application class for the Kidsplanner
  *        App.
  * @details Constructs {@link Kidsplanner} and runs the console loop (menu or text mode).
- * @author ugur.coruh
+ * @author Ece İrem ŞAŞ
+ * @author İkra BOSTAN
  */
 public class KidsplannerApp {
   /**
