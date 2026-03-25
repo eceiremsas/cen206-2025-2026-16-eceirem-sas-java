@@ -68,7 +68,7 @@ public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T
   @Override public void update(T entity) {
     Integer id = entity.getId();
     if (id == null || !data.containsKey(id)) {
-      throw new RepositoryException("Guncellenecek kayit bulunamadi.");
+      throw new RepositoryException("Record to update not found.");
     }
     data.put(id, entity);
     persist();
@@ -112,7 +112,7 @@ public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T
     try (ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(filePath))) {
       output.writeObject(data);
     } catch (IOException e) {
-      throw new RepositoryException("Binary veri yazilamadi.", e);
+      throw new RepositoryException("Binary data could not be written.", e);
     }
   }
 }

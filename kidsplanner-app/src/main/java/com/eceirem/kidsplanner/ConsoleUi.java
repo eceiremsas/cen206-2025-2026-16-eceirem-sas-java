@@ -47,24 +47,18 @@ public final class ConsoleUi {
   public static final String FG_RED = "\u001B[31m";
   /** Background blue. */
   public static final String BG_BLUE = "\u001B[44m";
-  /** Box-drawing horizontal line. */
-  private static final String HLINE = "\u2500";
-  /** Box-drawing vertical line. */
-  private static final String VLINE = "\u2502";
-  /** Top-left box corner. */
-  private static final String TLC = "\u250c";
-  /** Top-right box corner. */
-  private static final String TRC = "\u2510";
-  /** Bottom-left box corner. */
-  private static final String BLC = "\u2514";
-  /** Bottom-right box corner. */
-  private static final String BRC = "\u2518";
-  /** Tee junction (left). */
-  private static final String TEE_L = "\u251c";
-  /** Tee junction (right). */
-  private static final String TEE_R = "\u2524";
-  /** Table cross junction. */
-  private static final String CROSS = "\u253c";
+  /**
+   * ASCII box drawing for maximum compatibility (some Windows consoles render Unicode line-art as {@code ?}).
+   */
+  private static final String HLINE = "-";
+  private static final String VLINE = "|";
+  private static final String TLC = "+";
+  private static final String TRC = "+";
+  private static final String BLC = "+";
+  private static final String BRC = "+";
+  private static final String TEE_L = "+";
+  private static final String TEE_R = "+";
+  private static final String CROSS = "+";
   /** Time formatting for tables. */
   private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT);
 
@@ -81,14 +75,15 @@ public final class ConsoleUi {
   /** Prints the application banner and optional Windows UTF-8 hint. */
   public static void printBanner(PrintStream out) {
     out.println();
-    out.println(DIM + "  ┌────────────────────────────────────────────────────────────┐" + RESET);
-    out.println(FG_CYAN + BOLD + "  │" + RESET + "   " + FG_WHITE + BOLD + "KIDS  PLANNER" + RESET + "  "
-        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 Kids Activity Planner Midterm Project" + " " + FG_CYAN + BOLD + "│" + RESET);
-    out.println(FG_GREEN + BOLD + "  │" + RESET + "   " + DIM + "Cocuk ve aktivite yonetimi \u00b7 Binary \u00b7 SQLite \u00b7 MySQL" + "     " + FG_GREEN + BOLD + "│" + RESET);
-    out.println(DIM + "  └────────────────────────────────────────────────────────────┘" + RESET);
+    out.println(DIM + "  +------------------------------------------------------------+" + RESET);
+    out.println(FG_CYAN + BOLD + "  |" + RESET + "   " + FG_WHITE + BOLD + "KIDS  PLANNER" + RESET + "  "
+        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 Kids Activity Planner Midterm Project" + " " + FG_CYAN + BOLD + "|" + RESET);
+    out.println(FG_GREEN + BOLD + "  |" + RESET + "   " + DIM + "Child & activity management - Binary - SQLite - MySQL" + "     "
+        + FG_GREEN + BOLD + "|" + RESET);
+    out.println(DIM + "  +------------------------------------------------------------+" + RESET);
     out.println();
     if (System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win")) {
-      out.println(DIM + "  (Windows: renk ve UTF-8 icin Windows Terminal + chcp 65001 onerilir.)" + RESET);
+      out.println(DIM + "  (Windows: for colors and UTF-8, Windows Terminal + chcp 65001 is recommended.)" + RESET);
       out.println();
     }
   }
@@ -172,7 +167,7 @@ public final class ConsoleUi {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         String clock = today + "  " + now.format(TIME_FMT);
-        out.println("  " + DIM + "Saat: " + RESET + FG_CYAN + clock + RESET);
+        out.println("  " + DIM + "Time: " + RESET + FG_CYAN + clock + RESET);
         out.println();
         drawMenuBox(out, title, options, index);
         out.println();
@@ -180,7 +175,7 @@ public final class ConsoleUi {
           out.println("  " + DIM + statusLine + RESET);
           out.println();
         }
-        out.println("  " + DIM + "Ok tuslari \u00b7 Tab \u00b7 Enter \u00b7 Esc/Q: cikis" + RESET);
+        out.println("  " + DIM + "Arrow keys / Tab / Enter / Esc/Q: exit" + RESET);
         out.flush();
 
         int ch = reader.read();
@@ -256,7 +251,7 @@ public final class ConsoleUi {
       LocalDate today = LocalDate.now();
       LocalTime now = LocalTime.now();
       String clock = today + "  " + now.format(TIME_FMT);
-      out.println("  " + DIM + "Saat: " + RESET + FG_CYAN + clock + RESET);
+      out.println("  " + DIM + "Time: " + RESET + FG_CYAN + clock + RESET);
       out.println();
       drawMenuBox(out, title, options, index);
       out.println();
@@ -264,9 +259,9 @@ public final class ConsoleUi {
         out.println("  " + DIM + statusLine + RESET);
         out.println();
       }
-      out.println("  " + DIM + "Ok yukari/asagi \u00b7 Tab \u00b7 Home/End \u00b7 W/S (yedek) \u00b7 Enter: sec" + RESET);
-      out.println("  " + DIM + "Windows cmd: ok bazen W/S; Windows Terminal onerilir." + RESET);
-      out.println("  " + DIM + "Cikis: son satiri secin veya Q" + RESET);
+      out.println("  " + DIM + "Up/down / Tab / Home/End / W/S (fallback) / Enter: select" + RESET);
+      out.println("  " + DIM + "Windows cmd: arrows may need W/S; Windows Terminal is recommended." + RESET);
+      out.println("  " + DIM + "Exit: choose the last row or press Q" + RESET);
       out.flush();
 
       // Do not use readUtf8Byte for the first byte: on Windows, arrow keys send 0xE0 (same as UTF-8 lead)
@@ -411,10 +406,10 @@ public final class ConsoleUi {
   /** Prints {@link Kid} rows as a UTF-8 table. */
   public static void printKidTable(PrintStream out, List<Kid> kids) {
     if (kids.isEmpty()) {
-      muted(out, "(cocuk kaydi yok)");
+      muted(out, "(no kids on file)");
       return;
     }
-    String[] headers = {"ID", "Ad", "D.Yili", "Not"};
+    String[] headers = {"ID", "Name", "Birth yr.", "Notes"};
     int[] w = {4, 22, 7, 18};
     printTableTop(out, w);
     printTableRow(out, w, headers, true);
@@ -438,12 +433,12 @@ public final class ConsoleUi {
   /** Prints {@link Activity} rows as a UTF-8 table. */
   public static void printActivityTable(PrintStream out, List<Activity> activities) {
     if (activities.isEmpty()) {
-      muted(out, "(aktivite yok)");
+      muted(out, "(no activities)");
       return;
     }
     int[] w = {4, 4, 12, 11, 7, 18};
     printTableTop(out, w);
-    printTableRow(out, w, new String[] {"ID", "CID", "Tarih", "Saat", "Tip", "Baslik"}, true);
+    printTableRow(out, w, new String[] {"ID", "CID", "Date", "Time", "Type", "Title"}, true);
     printTableSep(out, w);
     for (Activity a : activities) {
       String timeR = a.getStartTime() + "-" + a.getEndTime();

@@ -51,7 +51,7 @@ public class KidsplannerTest {
   @Test
   public void testRunWithInvalidCommandShowsMessage() throws java.io.IOException {
     String output = runWithInput("x\nexit\n");
-    assertTrue(output.contains("Gecersiz komut"));
+    assertTrue(output.contains("Invalid command"));
   }
 
   /**
@@ -64,7 +64,7 @@ public class KidsplannerTest {
   @Test
   public void testRunWithOpenCommandShowsHelp() throws java.io.IOException {
     String output = runWithInput("open\nexit\n");
-    assertTrue(output.contains("Tarih formati"));
+    assertTrue(output.contains("Date format"));
   }
 
   /**
@@ -77,7 +77,7 @@ public class KidsplannerTest {
   @Test
   public void testRunWithUpCommandShowsHint() throws java.io.IOException {
     String output = runWithInput("up\nexit\n");
-    assertTrue(output.contains("Komut seciniz"));
+    assertTrue(output.contains("Choose a command"));
   }
 
   /**
@@ -90,7 +90,7 @@ public class KidsplannerTest {
   @Test
   public void testRunWithTabCommandShowsHint() throws java.io.IOException {
     String output = runWithInput("tab\nexit\n");
-    assertTrue(output.contains("Komut seciniz"));
+    assertTrue(output.contains("Choose a command"));
   }
 
   /**
@@ -104,7 +104,7 @@ public class KidsplannerTest {
   public void testRunAddThenListShowsCreatedActivity() throws java.io.IOException {
     String input = "add\n\nMath\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\nlist\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("Aktivite eklendi"));
+    assertTrue(output.contains("Activity added"));
     assertTrue(output.contains("title='Math'"));
     assertTrue(output.contains("date=2026-03-25"));
     assertTrue(output.contains("start=09:00"));
@@ -122,7 +122,7 @@ public class KidsplannerTest {
     String input = "add\n\nSecond\n2026-03-25\n11:00\n12:00\nSTUDY\nHome\nNote\n"
         + "add\n\nFirst\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("--- Aktivite Listesi ---"));
+    assertTrue(output.contains("--- Activity list ---"));
     assertInOrder(output, "title='First'", "title='Second'");
   }
 
@@ -138,7 +138,7 @@ public class KidsplannerTest {
     String input = "add\n\nA\n2026-03-26\n09:00\n10:00\nSTUDY\nHome\nNote\n"
         + "add\n\nB\n2026-03-25\n09:00\n10:00\nPLAY\nPark\nNote\nlist\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("--- Aktivite Listesi ---"));
+    assertTrue(output.contains("--- Activity list ---"));
     assertInOrder(output, "title='B'", "title='A'");
   }
 
@@ -153,7 +153,7 @@ public class KidsplannerTest {
   public void testRunAddWithInvalidDateShowsValidationError() throws java.io.IOException {
     String input = "add\n\nMath\nbad-date\n09:00\n10:00\nSTUDY\nHome\nNote\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("Tarih/saat formati gecersiz"));
+    assertTrue(output.contains("Invalid date/time format"));
   }
 
   /**
@@ -168,7 +168,7 @@ public class KidsplannerTest {
     String input = "add\n\nFirst\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
         + "add\n\nSecond\n2026-03-25\n09:30\n10:30\nPLAY\nPark\nn2\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("Ayni gunde saat cakismasi var"));
+    assertTrue(output.contains("Time overlap on the same day"));
   }
 
   /**
@@ -181,7 +181,7 @@ public class KidsplannerTest {
   @Test
   public void testRunUpdateWithMissingIdShowsValidationError() throws java.io.IOException {
     String output = runWithInput("update\n9\nexit\n");
-    assertTrue(output.contains("ID bulunamadi"));
+    assertTrue(output.contains("ID not found"));
   }
 
   /**
@@ -196,7 +196,7 @@ public class KidsplannerTest {
     String input = "add\n\nOld\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nn1\n"
         + "update\n1\n\nNew\n2026-03-25\n10:30\n11:30\nPLAY\nPark\nn2\nlist\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("Aktivite guncellendi."));
+    assertTrue(output.contains("Activity updated."));
     assertTrue(output.contains("title='New'"));
     assertTrue(output.contains("start=10:30"));
     assertTrue(output.contains("end=11:30"));
@@ -232,8 +232,8 @@ public class KidsplannerTest {
   @Test
   public void testRunDeleteForMissingIdPrintsDeleteMessage() throws java.io.IOException {
     String output = runWithInput("delete\n42\nexit\n");
-    assertTrue(output.contains("Aktivite silindi (varsa)."));
-    assertFalse(output.contains("Hata:"));
+    assertTrue(output.contains("Activity deleted (if it existed)."));
+    assertFalse(output.contains("Error:"));
   }
 
   /**
@@ -248,7 +248,7 @@ public class KidsplannerTest {
     String input = "add\n\nMath\n2026-03-25\n09:00\n10:00\nSTUDY\nHome\nNote\n"
         + "delete\n1\nlist\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("(kayit yok)"));
+    assertTrue(output.contains("(no records)"));
   }
 
   /**
@@ -261,7 +261,7 @@ public class KidsplannerTest {
   @Test
   public void testRunListWithNoDataShowsEmptyMarker() throws java.io.IOException {
     String output = runWithInput("list\nexit\n");
-    assertTrue(output.contains("(kayit yok)"));
+    assertTrue(output.contains("(no records)"));
   }
 
   /**
@@ -275,7 +275,7 @@ public class KidsplannerTest {
   public void testRunAddWithInvalidTypeShowsValidationError() throws java.io.IOException {
     String input = "add\n\nMath\n2026-03-25\n09:00\n10:00\nUNKNOWN\nHome\nNote\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("Aktivite tipi gecersiz"));
+    assertTrue(output.contains("Invalid activity type"));
   }
 
   /**
@@ -289,7 +289,7 @@ public class KidsplannerTest {
   public void testRunAddWithEmptyTitleShowsValidationError() throws java.io.IOException {
     String input = "add\n\n\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("Baslik bos olamaz"));
+    assertTrue(output.contains("Title cannot be empty"));
   }
 
   /**
@@ -303,7 +303,7 @@ public class KidsplannerTest {
   public void testRunAddWithInvalidTimeOrderShowsValidationError() throws java.io.IOException {
     String input = "add\n\nMath\n2026-03-25\n10:00\n10:00\nSTUDY\nHome\nNote\nexit\n";
     String output = runWithInput(input);
-    assertTrue(output.contains("Baslangic saati, bitis saatinden once olmali"));
+    assertTrue(output.contains("Start time must be before end time"));
   }
 
   /**
@@ -331,7 +331,7 @@ public class KidsplannerTest {
   @Test
   public void testRunWithMixedCaseAndSpacesCommandParsesCorrectly() throws java.io.IOException {
     String output = runWithInput("  LiSt  \nexit\n");
-    assertTrue(output.contains("--- Aktivite Listesi ---"));
+    assertTrue(output.contains("--- Activity list ---"));
   }
 
   /**
@@ -344,7 +344,7 @@ public class KidsplannerTest {
   @Test
   public void testRunWithEmptyCommandShowsInvalidMessage() throws java.io.IOException {
     String output = runWithInput("\nexit\n");
-    assertTrue(output.contains("Gecersiz komut"));
+    assertTrue(output.contains("Invalid command"));
   }
 
   /**
@@ -357,7 +357,7 @@ public class KidsplannerTest {
   @Test
   public void testRunWithExitPrintsShutdownMessage() throws java.io.IOException {
     String output = runWithInput("exit\n");
-    assertTrue(output.contains("Uygulama kapatildi."));
+    assertTrue(output.contains("Application closed."));
   }
 
   /**

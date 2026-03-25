@@ -60,6 +60,15 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
 
   /** Creates {@code kid} and {@code activity} tables when missing. */
   private void ensureSchema() {
+    try {
+      ensureDatabaseExistsIfNeeded();
+      ensureTables();
+    } catch (SQLException e) {
+      throw new RepositoryException(buildFriendlySchemaError(e), e);
+    }
+  }
+
+  private void ensureTables() throws SQLException {
     try (Connection connection = connect(); Statement statement = connection.createStatement()) {
       statement.executeUpdate(
           "CREATE TABLE IF NOT EXISTS kid ("
@@ -81,9 +90,80 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
               + "notes VARCHAR(512) NULL,"
               + "CONSTRAINT fk_activity_kid FOREIGN KEY (kid_id) REFERENCES kid(id))"
               + " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    } catch (SQLException e) {
-      throw new RepositoryException("MySQL sema olusturulamadi. Docker MySQL ayakta mi?", e);
     }
+  }
+
+  /**
+   * If the JDBC URL targets a database that does not exist yet, create it.
+   * This keeps the app working with the provided docker-compose default (MYSQL_DATABASE=kidsplanner)
+   * and also helps when the database was manually deleted.
+   */
+  private void ensureDatabaseExistsIfNeeded() throws SQLException {
+    // Fast path: if connect works, db exists.
+    try (Connection ignored = connect()) {
+      return;
+    } catch (SQLException e) {
+      // MySQL error 1049 = Unknown database
+      if (e.getErrorCode() != 1049) {
+        throw e;
+      }
+      String dbName = parseDatabaseName(jdbcUrl);
+      if (dbName == null || dbName.trim().isEmpty()) {
+        throw e;
+      }
+      String serverUrl = stripDatabaseFromJdbcUrl(jdbcUrl);
+      try (Connection serverConn = DriverManager.getConnection(serverUrl, username, password);
+          Statement st = serverConn.createStatement()) {
+        st.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName + " DEFAULT CHARACTER SET utf8mb4");
+      }
+    }
+  }
+
+  private static String parseDatabaseName(String url) {
+    // Expected: jdbc:mysql://host:port/dbname?params...
+    int scheme = url.indexOf("://");
+    if (scheme < 0) {
+      return null;
+    }
+    int firstSlash = url.indexOf('/', scheme + 3);
+    if (firstSlash < 0) {
+      return null;
+    }
+    int q = url.indexOf('?', firstSlash + 1);
+    String db = q < 0 ? url.substring(firstSlash + 1) : url.substring(firstSlash + 1, q);
+    return db.trim().isEmpty() ? null : db.trim();
+  }
+
+  private static String stripDatabaseFromJdbcUrl(String url) {
+    // Convert jdbc:mysql://host:port/db?x=y -> jdbc:mysql://host:port/?x=y
+    int scheme = url.indexOf("://");
+    if (scheme < 0) {
+      return url;
+    }
+    int firstSlash = url.indexOf('/', scheme + 3);
+    if (firstSlash < 0) {
+      return url;
+    }
+    int q = url.indexOf('?', firstSlash + 1);
+    String params = q < 0 ? "" : url.substring(q);
+    return url.substring(0, firstSlash + 1) + params;
+  }
+
+  private String buildFriendlySchemaError(SQLException e) {
+    // 08xxx: connection issues
+    String state = e.getSQLState();
+    if (state != null && state.startsWith("08")) {
+      return "Could not connect to MySQL. Is Docker MySQL running? (docker compose up -d)";
+    }
+    if (e.getErrorCode() == 1049) {
+      String db = parseDatabaseName(jdbcUrl);
+      return "MySQL database not found: " + (db == null ? "(unknown)" : db)
+          + ". Create the DB with Docker Compose (MYSQL_DATABASE).";
+    }
+    if (e.getErrorCode() == 1045) {
+      return "MySQL authentication failed (user/password). Default: root / kidsplanner.";
+    }
+    return "Could not create MySQL schema. Is Docker MySQL running?";
   }
 
   /**
@@ -158,7 +238,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
         }
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL silme islemi basarisiz.", e);
+      throw new RepositoryException("MySQL delete operation failed.", e);
     }
   }
 
@@ -181,7 +261,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
         }
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL cocuk kaydi eklenemedi.", e);
+      throw new RepositoryException("Could not insert kid row in MySQL.", e);
     }
   }
 
@@ -205,7 +285,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
         }
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL aktivite kaydi eklenemedi.", e);
+      throw new RepositoryException("Could not insert activity row in MySQL.", e);
     }
   }
 
@@ -221,7 +301,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
         return mapKid(resultSet);
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL cocuk okunamadi.", e);
+      throw new RepositoryException("Could not read kid from MySQL.", e);
     }
   }
 
@@ -238,7 +318,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
         return mapActivity(resultSet);
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL aktivite okunamadi.", e);
+      throw new RepositoryException("Could not read activity from MySQL.", e);
     }
   }
 
@@ -253,7 +333,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
         list.add(mapKid(resultSet));
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL cocuk listesi okunamadi.", e);
+      throw new RepositoryException("Could not list kids from MySQL.", e);
     }
     return list;
   }
@@ -270,7 +350,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
         list.add(mapActivity(resultSet));
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL aktivite listesi okunamadi.", e);
+      throw new RepositoryException("Could not list activities from MySQL.", e);
     }
     return list;
   }
@@ -278,7 +358,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
   /** Updates an existing kid row. */
   private void updateKid(Kid kid) {
     if (kid.getId() == null) {
-      throw new RepositoryException("Guncellenecek cocuk kimligi yok.");
+      throw new RepositoryException("Kid id missing for update.");
     }
     String sql = "UPDATE kid SET display_name=?, birth_year=?, notes=? WHERE id=?";
     try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -291,17 +371,17 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
       statement.setString(3, kid.getNotes());
       statement.setInt(4, kid.getId().intValue());
       if (statement.executeUpdate() == 0) {
-        throw new RepositoryException("Guncellenecek cocuk bulunamadi.");
+        throw new RepositoryException("Kid to update not found.");
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL cocuk guncellenemedi.", e);
+      throw new RepositoryException("Could not update kid in MySQL.", e);
     }
   }
 
   /** Updates an existing activity row. */
   private void updateActivity(Activity activity) {
     if (activity.getId() == null) {
-      throw new RepositoryException("Guncellenecek aktivite kimligi yok.");
+      throw new RepositoryException("Activity id missing for update.");
     }
     String sql =
         "UPDATE activity SET kid_id=?, title=?, act_date=?, start_time=?, end_time=?, type=?, location=?, notes=? WHERE id=?";
@@ -316,10 +396,10 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
       statement.setString(8, activity.getNotes());
       statement.setInt(9, activity.getId().intValue());
       if (statement.executeUpdate() == 0) {
-        throw new RepositoryException("Guncellenecek aktivite bulunamadi.");
+        throw new RepositoryException("Activity to update not found.");
       }
     } catch (SQLException e) {
-      throw new RepositoryException("MySQL aktivite guncellenemedi.", e);
+      throw new RepositoryException("Could not update activity in MySQL.", e);
     }
   }
 
