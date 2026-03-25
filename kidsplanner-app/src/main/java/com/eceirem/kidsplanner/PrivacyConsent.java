@@ -57,7 +57,7 @@ public final class PrivacyConsent {
           "Secim hukuki onay niteligindedir.");
       if (idx != 0) {
         System.out.println("Onay verilmedi. Uygulama kapaniyor.");
-        System.exit(0);
+        throw new RepositoryException("Onay verilmedi.");
       }
       writeConsentFlag();
       return;

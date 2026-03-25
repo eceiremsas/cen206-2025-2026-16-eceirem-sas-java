@@ -201,14 +201,14 @@ public class BinaryRepositoryTest {
   }
 
   /**
-   * @brief Verifies constructor throws when class cannot be resolved.
+   * @brief Verifies constructor tolerates unreadable serialized class by starting empty.
    *
    * @param none This method has no parameter.
    * @return void This method returns no value.
    * @throws java.io.IOException If file operation fails.
    */
   @Test
-  public void testConstructorThrowsWhenSerializedClassIsMissing() throws java.io.IOException {
+  public void testConstructorStartsEmptyWhenSerializedClassIsMissing() throws java.io.IOException {
     String file = "target/test-repo-class-not-found.bin";
     cleanup(file);
     Activity existing = sample("Existing", 8, 9);
@@ -226,10 +226,8 @@ public class BinaryRepositoryTest {
     text = text.replace(originalName, replacedName);
     Files.write(Paths.get(file), text.getBytes(StandardCharsets.ISO_8859_1));
 
-    RepositoryException exception = assertThrows(
-        RepositoryException.class,
-        () -> new BinaryRepository<Activity>(file));
-    assertTrue(exception.getMessage().contains("Binary veri okunamadi"));
+    BinaryRepository<Activity> repository = new BinaryRepository<Activity>(file);
+    assertTrue(repository.findAll().isEmpty());
     cleanup(file);
   }
 

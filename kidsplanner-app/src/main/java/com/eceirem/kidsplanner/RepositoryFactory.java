@@ -18,21 +18,15 @@ public final class RepositoryFactory {
   }
 
   private static String defaultMysqlUrl() {
-    String env = System.getenv("KIDSPLANNER_MYSQL_URL");
-    if (env != null && !env.trim().isEmpty()) {
-      return env.trim();
-    }
     return "jdbc:mysql://localhost:3306/kidsplanner?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
   }
 
   private static String defaultMysqlUser() {
-    String env = System.getenv("KIDSPLANNER_MYSQL_USER");
-    return env != null && !env.trim().isEmpty() ? env.trim() : "root";
+    return "root";
   }
 
   private static String defaultMysqlPassword() {
-    String env = System.getenv("KIDSPLANNER_MYSQL_PASSWORD");
-    return env != null && !env.trim().isEmpty() ? env.trim() : "kidsplanner";
+    return "kidsplanner";
   }
 
   public static StorageType getActiveStorage() {
@@ -67,9 +61,8 @@ public final class RepositoryFactory {
         return new SqliteRepository<Kid>(sqliteJdbcUrl, SqliteRepository.EntityKind.KID);
       case MYSQL:
         return new MysqlRepository<Kid>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MysqlRepository.EntityKind.KID);
-      default:
-        throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
     }
+    throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
   }
 
   public static IRepository<Activity> createActivityRepository() {
@@ -80,9 +73,8 @@ public final class RepositoryFactory {
         return new SqliteRepository<Activity>(sqliteJdbcUrl, SqliteRepository.EntityKind.ACTIVITY);
       case MYSQL:
         return new MysqlRepository<Activity>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MysqlRepository.EntityKind.ACTIVITY);
-      default:
-        throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
     }
+    throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
   }
 
   public static StorageType parseStorageTypeOrNull(String text) {

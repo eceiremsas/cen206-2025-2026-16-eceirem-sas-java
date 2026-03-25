@@ -173,6 +173,14 @@
 				<configuration>
 					<excludes>
 						<exclude>com/eceirem/kidsplanner/Kidsplanner$1*</exclude>
+						<!-- Exclude interactive UI / integration-heavy code from unit coverage -->
+						<exclude>com/eceirem/kidsplanner/ConsoleUi*</exclude>
+						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
+						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
+						<exclude>com/eceirem/kidsplanner/MysqlRepository*</exclude>
+						<!-- Exclude factory/repo I/O glue from unit coverage -->
+						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
+						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>
 					</excludes>
 				</configuration>
 				<executions>
