@@ -1,0 +1,12 @@
+@startuml
+title C4 - Context (Sprint 1)
+
+actor Parent as parent
+rectangle "Kids Activity Planner\n(Console app)" as system
+database "Storage\n(Binary / SQLite / MySQL)" as storage
+
+parent --> system : uses
+system --> storage : reads/writes kids & activities
+
+@enduml
+

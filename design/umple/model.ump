@@ -1,0 +1,27 @@
+namespace com.eceirem.kidsplanner;
+
+class Kid {
+  id Integer;
+  displayName String;
+  birthYear Integer;
+  notes String;
+}
+
+enum ActivityType { STUDY, PLAY, SPORT, ART, SLEEP, SOCIAL }
+
+class Activity {
+  id Integer;
+  kidId Integer;
+  title String;
+  date String;
+  startTime String;
+  endTime String;
+  type ActivityType;
+  location String;
+  notes String;
+}
+
+association {
+  Kid 1 -- "*" Activity;
+}
+

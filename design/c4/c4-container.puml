@@ -1,0 +1,21 @@
+@startuml
+title C4 - Container (Sprint 1)
+
+actor Parent as parent
+
+rectangle "Kidsplanner App (JAR)\nConsole UI + controller" as app
+rectangle "Domain + Services\n(Kid, Activity, rules)" as domain
+rectangle "Persistence layer\n(IRepository, Factory)" as persistence
+database "Binary files\nkidsplanner-*.bin" as bin
+database "SQLite DB\nkidsplanner.db" as sqlite
+database "MySQL DB\nDocker" as mysql
+
+parent --> app
+app --> domain
+domain --> persistence
+persistence --> bin
+persistence --> sqlite
+persistence --> mysql
+
+@enduml
+
