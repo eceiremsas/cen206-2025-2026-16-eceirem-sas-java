@@ -12,9 +12,12 @@
 
 	<!-- More Project Information -->
 	<name>kidsplanner-app</name>
-	<url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+	<url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java</url>
 	<scm>
-		<url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+		<connection>scm:git:https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java.git</connection>
+		<developerConnection>scm:git:git@github.com:eceiremsas/cen206-2025-2026-16-eceirem-sas-java.git</developerConnection>
+		<url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java</url>
+		<tag>HEAD</tag>
 	</scm>
 	<inceptionYear>2026</inceptionYear>
 	<developers>
@@ -63,7 +66,7 @@
 	<!-- Environment Settings -->
 	<issueManagement>
 		<system>Github</system>
-		<url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+		<url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>Github</system>
@@ -76,25 +79,20 @@
 				<sendOnWarning>true</sendOnWarning>
 			</notifier>
 		</notifiers>
-		<url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+		<url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/actions</url>
 	</ciManagement>
-	<repositories>
-		<repository>
-			<id>eclipse-java-maven-template</id>
-			<name>eclipse-java-maven-template</name>
-			<url>https://github.com/ucoruh/eclipse-java-maven-template</url>
-		</repository>
-	</repositories>
+	<!-- Dependencies are resolved from Maven Central (no extra repositories block). -->
 	<distributionManagement>
 		<site>
-			<name>https://github.com/ucoruh/eclipse-java-maven-template</name>
-			<id>eclipse-java-maven-template</id>
+			<id>github-pages</id>
+			<name>Kids Activity Planner documentation site</name>
+			<url>https://eceiremsas.github.io/cen206-2025-2026-16-eceirem-sas-java/</url>
 		</site>
-		<downloadUrl>https://github.com/ucoruh/eclipse-java-maven-template</downloadUrl>
+		<downloadUrl>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java/releases</downloadUrl>
 		<repository>
-			<id>eclipse-java-maven-template</id>
-			<name>eclipse-java-maven-template</name>
-			<url>https://github.com/ucoruh/eclipse-java-maven-template</url>
+			<id>github-project</id>
+			<name>Project releases (see GitHub Releases)</name>
+			<url>https://github.com/eceiremsas/cen206-2025-2026-16-eceirem-sas-java</url>
 		</repository>
 	</distributionManagement>
 	<properties>
