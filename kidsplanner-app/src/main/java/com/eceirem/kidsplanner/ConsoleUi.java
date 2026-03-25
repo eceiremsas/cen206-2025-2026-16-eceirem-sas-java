@@ -173,6 +173,15 @@ public final class ConsoleUi {
         index = (index + 1) % options.size();
         continue;
       }
+      // vim-style fallback (some IDE consoles swallow arrow keys)
+      if (read == 'k' || read == 'K') {
+        index = (index - 1 + options.size()) % options.size();
+        continue;
+      }
+      if (read == 'j' || read == 'J') {
+        index = (index + 1) % options.size();
+        continue;
+      }
       // Windows conhost (classic cmd, VT off): prefix 0x00 or 0xE0 + virtual-key scan code
       if (read == 0 || read == 224) {
         int scan = in.read();
@@ -200,6 +209,17 @@ public final class ConsoleUi {
           ((PushbackInputStream) in).unread(read);
         }
         readUtf8Byte(in, buffer);
+        continue;
+      }
+      // 8-bit CSI (single byte control sequence introducer)
+      if (read == 0x9B) {
+        int nav = readCsiNavigation(in);
+        if (nav == NAV_QUIT) {
+          return options.size() - 1;
+        }
+        if (nav != NAV_NONE) {
+          index = applyNav(nav, index, options.size());
+        }
         continue;
       }
       if (read == 27) {
@@ -450,36 +470,10 @@ public final class ConsoleUi {
   }
 
   /**
-   * After leading ESC (27), interprets the rest of an ANSI navigation sequence.
+   * Reads a CSI navigation sequence when the introducer is already consumed.
+   * Expected forms: A/B (arrows), H/F (home/end) or <n>~ (home/end/pgup/pgdn).
    */
-  private static int readAnsiNavigation(InputStream in) throws IOException {
-    int second = in.read();
-    if (second == -1) {
-      return NAV_QUIT;
-    }
-    if (second == 'q' || second == 'Q') {
-      return NAV_QUIT;
-    }
-    // SS3 cursor keys: ESC O A / ESC O B (some terminals)
-    if (second == 'O') {
-      int third = in.read();
-      if (third == 'A') {
-        return NAV_UP;
-      }
-      if (third == 'B') {
-        return NAV_DOWN;
-      }
-      if (third == 'H') {
-        return NAV_HOME;
-      }
-      if (third == 'F') {
-        return NAV_END;
-      }
-      return NAV_NONE;
-    }
-    if (second != '[') {
-      return NAV_NONE;
-    }
+  private static int readCsiNavigation(InputStream in) throws IOException {
     StringBuilder params = new StringBuilder();
     while (true) {
       int c = in.read();
@@ -519,6 +513,40 @@ public final class ConsoleUi {
       }
       params.append((char) c);
     }
+  }
+
+  /**
+   * After leading ESC (27), interprets the rest of an ANSI navigation sequence.
+   */
+  private static int readAnsiNavigation(InputStream in) throws IOException {
+    int second = in.read();
+    if (second == -1) {
+      return NAV_QUIT;
+    }
+    if (second == 'q' || second == 'Q') {
+      return NAV_QUIT;
+    }
+    // SS3 cursor keys: ESC O A / ESC O B (some terminals)
+    if (second == 'O') {
+      int third = in.read();
+      if (third == 'A') {
+        return NAV_UP;
+      }
+      if (third == 'B') {
+        return NAV_DOWN;
+      }
+      if (third == 'H') {
+        return NAV_HOME;
+      }
+      if (third == 'F') {
+        return NAV_END;
+      }
+      return NAV_NONE;
+    }
+    if (second != '[') {
+      return NAV_NONE;
+    }
+    return readCsiNavigation(in);
   }
 
   private static int readUtf8Byte(InputStream in, byte[] single) throws IOException {
