@@ -88,6 +88,15 @@ public class DomainAndConsentBehaviorTest {
     assertTrue(PrivacyConsent.hasConsentFlag());
   }
 
+  /** When flag exists, interactive consent returns immediately (no menu). */
+  @Test
+  public void testPrivacyConsentSkipsMenuWhenFlagAlreadyPresent() throws Exception {
+    PrivacyConsent.writeConsentFlag();
+    assertTrue(PrivacyConsent.hasConsentFlag());
+    PrivacyConsent.ensureInteractiveConsent(new ByteArrayInputStream(new byte[0]), true);
+    assertTrue(PrivacyConsent.hasConsentFlag());
+  }
+
   @Test
   public void testRepositoryExceptionStoresCauseAndMessage() {
     Throwable cause = new IllegalStateException("root");
