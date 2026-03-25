@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Scanner;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
@@ -50,6 +52,7 @@ public class Kidsplanner {
   private final PushbackInputStream menuStdin;
   private final boolean menuMode;
   private final Terminal terminal;
+  private final LineReader lineReader;
   private IRepository<Kid> kidRepository;
   private IRepository<Activity> activityRepository;
 
@@ -80,12 +83,14 @@ public class Kidsplanner {
         t = null;
       }
       this.terminal = t;
+      this.lineReader = t == null ? null : LineReaderBuilder.builder().terminal(t).build();
       this.menuMode = true;
     } else {
       this.menuStdin = null;
       this.scanner = new Scanner(System.in, StandardCharsets.UTF_8.name());
       this.menuMode = false;
       this.terminal = null;
+      this.lineReader = null;
     }
     reloadRepositories();
   }
@@ -101,11 +106,16 @@ public class Kidsplanner {
     this.menuStdin = null;
     this.menuMode = false;
     this.terminal = null;
+    this.lineReader = null;
     reloadRepositories();
   }
 
   private String nextLine() throws IOException {
     if (menuMode) {
+      if (lineReader != null) {
+        // menu input uses raw mode temporarily; line input should be normal line editing
+        return lineReader.readLine("");
+      }
       return ConsoleUi.readLineUtf8(menuStdin);
     }
     return scanner.nextLine();
@@ -247,7 +257,7 @@ public class Kidsplanner {
       explainStorage(target);
       System.out.println();
       System.out.println(RepositoryFactory.describeJdbcTargets());
-      System.out.println("Uyari: Backend degisince veriler otomatik tasınmaz (her depo ayri).");
+      System.out.println("Uyari: Backend degisince veriler otomatik tasinmaz (her depo ayri).");
     } catch (RepositoryException e) {
       RepositoryFactory.setActiveStorage(StorageType.BINARY);
       reloadRepositories();
@@ -278,7 +288,7 @@ public class Kidsplanner {
       System.out.println("SQLite (tek dosya DB): kidsplanner.db icine kid/activity tablolarini olusturur ve kaydeder.");
       System.out.println("Avantaj: kurulum yok, SQL var. Dezavantaj: buyuk/cok kullanici icin sinirli.");
     } else if (storage == StorageType.MYSQL) {
-      System.out.println("MySQL (sunucu DB): Docker ile calisan MySQL'e baglanir ve tabloları olusturur.");
+      System.out.println("MySQL (sunucu DB): Docker ile calisan MySQL'e baglanir ve tablolari olusturur.");
       System.out.println("Avantaj: gercek sunucu DB. Dezavantaj: docker/mysql calismali (port 3306).");
     }
   }

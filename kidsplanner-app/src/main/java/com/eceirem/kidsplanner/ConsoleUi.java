@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.utils.NonBlockingReader;
 
@@ -128,68 +129,72 @@ public final class ConsoleUi {
       return -1;
     }
     int index = 0;
-    terminal.enterRawMode();
-    NonBlockingReader reader = terminal.reader();
-    while (true) {
-      clearScreen(out);
-      printBanner(out);
-      LocalDate today = LocalDate.now();
-      LocalTime now = LocalTime.now();
-      String clock = today + "  " + now.format(TIME_FMT);
-      out.println("  " + DIM + "Saat: " + RESET + FG_CYAN + clock + RESET);
-      out.println();
-      drawMenuBox(out, title, options, index);
-      out.println();
-      if (statusLine != null && !statusLine.isEmpty()) {
-        out.println("  " + DIM + statusLine + RESET);
+    Attributes original = terminal.enterRawMode();
+    try {
+      NonBlockingReader reader = terminal.reader();
+      while (true) {
+        clearScreen(out);
+        printBanner(out);
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        String clock = today + "  " + now.format(TIME_FMT);
+        out.println("  " + DIM + "Saat: " + RESET + FG_CYAN + clock + RESET);
         out.println();
-      }
-      out.println("  " + DIM + "Ok tuslari \u00b7 Tab \u00b7 Enter \u00b7 Esc/Q: cikis" + RESET);
-      out.flush();
+        drawMenuBox(out, title, options, index);
+        out.println();
+        if (statusLine != null && !statusLine.isEmpty()) {
+          out.println("  " + DIM + statusLine + RESET);
+          out.println();
+        }
+        out.println("  " + DIM + "Ok tuslari \u00b7 Tab \u00b7 Enter \u00b7 Esc/Q: cikis" + RESET);
+        out.flush();
 
-      int ch = reader.read();
-      if (ch == -1) {
-        return options.size() - 1;
-      }
-      if (ch == '\r' || ch == '\n') {
-        return index;
-      }
-      if (ch == '\t') {
-        index = (index + 1) % options.size();
-        continue;
-      }
-      if (ch == 'q' || ch == 'Q') {
-        return options.size() - 1;
-      }
-      // Arrow keys / navigation (ANSI)
-      if (ch == 27) {
-        int nav = readAnsiNavigation(terminal.input());
-        if (nav == NAV_QUIT) {
+        int ch = reader.read();
+        if (ch == -1) {
           return options.size() - 1;
         }
-        if (nav != NAV_NONE) {
-          index = applyNav(nav, index, options.size());
+        if (ch == '\r' || ch == '\n') {
+          return index;
         }
-        continue;
-      }
-      // Windows scan codes also work in some environments even in raw
-      if (ch == 0 || ch == 224) {
-        int scan = reader.read();
-        int nav = windowsScanToNav(scan);
-        if (nav != NAV_NONE) {
-          index = applyNav(nav, index, options.size());
+        if (ch == '\t') {
+          index = (index + 1) % options.size();
+          continue;
         }
-        continue;
+        if (ch == 'q' || ch == 'Q') {
+          return options.size() - 1;
+        }
+        // Arrow keys / navigation (ANSI)
+        if (ch == 27) {
+          int nav = readAnsiNavigation(terminal.input());
+          if (nav == NAV_QUIT) {
+            return options.size() - 1;
+          }
+          if (nav != NAV_NONE) {
+            index = applyNav(nav, index, options.size());
+          }
+          continue;
+        }
+        // Windows scan codes also work in some environments even in raw
+        if (ch == 0 || ch == 224) {
+          int scan = reader.read();
+          int nav = windowsScanToNav(scan);
+          if (nav != NAV_NONE) {
+            index = applyNav(nav, index, options.size());
+          }
+          continue;
+        }
+        // Fallback keys
+        if (ch == 'w' || ch == 'W' || ch == 'k' || ch == 'K') {
+          index = (index - 1 + options.size()) % options.size();
+          continue;
+        }
+        if (ch == 's' || ch == 'S' || ch == 'j' || ch == 'J') {
+          index = (index + 1) % options.size();
+          continue;
+        }
       }
-      // Fallback keys
-      if (ch == 'w' || ch == 'W' || ch == 'k' || ch == 'K') {
-        index = (index - 1 + options.size()) % options.size();
-        continue;
-      }
-      if (ch == 's' || ch == 'S' || ch == 'j' || ch == 'J') {
-        index = (index + 1) % options.size();
-        continue;
-      }
+    } finally {
+      terminal.setAttributes(original);
     }
   }
 
