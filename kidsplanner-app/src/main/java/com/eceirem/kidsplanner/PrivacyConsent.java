@@ -33,7 +33,8 @@ public final class PrivacyConsent {
   }
 
   /**
-   * @param menuStdin same stream used for {@link ConsoleUi} menus (e.g. wrapped {@link System#in}); ignored in text mode
+   * @param menuStdin same stream used for {@link ConsoleUi} menus (e.g. wrapped {@code System.in}); ignored in text mode
+   * @param menuMode {@code true} when running with interactive menu UI
    */
   public static void ensureInteractiveConsent(InputStream menuStdin, boolean menuMode) throws IOException {
     ensureInteractiveConsent(null, menuStdin, menuMode);

@@ -84,9 +84,9 @@ public final class ConsoleUi {
   }
 
   /**
-   * Reads one line of UTF-8 from stdin without using {@link java.util.Scanner}, so it does not
-   * compete with {@link #readMenuChoice} on the same stream. Use the same {@link PushbackInputStream}
-   * instance that wraps {@link System#in} in menu mode.
+   * Reads one line of UTF-8 from stdin without using java.util.Scanner, so it does not
+   * compete with {@link #readMenuChoice} on the same stream. Use the same java.io.PushbackInputStream
+   * instance that wraps {@code System.in} in menu mode.
    */
   public static String readLineUtf8(InputStream in) throws IOException {
     ByteArrayOutputStream buf = new ByteArrayOutputStream();
@@ -113,7 +113,8 @@ public final class ConsoleUi {
   }
 
   /**
-   * Prefer this overload in menu mode when a JLine {@link Terminal} is available (works with java -jar on Windows).
+   * Prefer this overload in menu mode when a JLine org.jline.terminal.Terminal is available (works with
+   * {@code java -jar} on Windows).
    */
   public static int readMenuChoice(Terminal terminal, InputStream fallbackIn, PrintStream out, String title,
       List<String> options, String statusLine) throws IOException {
@@ -201,12 +202,13 @@ public final class ConsoleUi {
   /**
    * Reads a menu choice with optional status line under the menu box.
    *
-   * @param statusLine may be null
+   * @param in should be a java.io.PushbackInputStream around {@code System.in} on Windows so
+   *           {@code \r\n} line endings do not leave a stray {@code \n} for the next read.
+   * @param out menu output stream
+   * @param title menu title to show inside the box
+   * @param options menu options (last option is typically "exit")
+   * @param statusLine optional status line under the menu box (may be null)
    * @return selected index
-   */
-  /**
-   * @param in should be a {@link PushbackInputStream} around {@link System#in} on Windows so
-   *           {@code \\r\\n} line endings do not leave a stray {@code \\n} for the next read.
    */
   public static int readMenuChoice(InputStream in, PrintStream out, String title, List<String> options, String statusLine)
       throws IOException {
@@ -561,7 +563,7 @@ public final class ConsoleUi {
 
   /**
    * Reads a CSI navigation sequence when the introducer is already consumed.
-   * Expected forms: A/B (arrows), H/F (home/end) or <n>~ (home/end/pgup/pgdn).
+   * Expected forms: A/B (arrows), H/F (home/end) or {@code n~} (home/end/pgup/pgdn).
    */
   private static int readCsiNavigation(InputStream in) throws IOException {
     StringBuilder params = new StringBuilder();

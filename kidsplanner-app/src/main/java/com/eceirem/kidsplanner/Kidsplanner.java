@@ -42,13 +42,13 @@ public class Kidsplanner {
   /**
    * Interactive menus when a real console is expected. {@code java -jar} from Windows {@code .bat}
    * often yields {@code System.console() == null} even though the user has a console; on Windows we
-   * still enable menu mode unless {@value #PROP_TEXT_MODE} is {@code true} (set by Surefire for tests).
+   * still enable menu mode unless {@link #PROP_TEXT_MODE} is {@code true} (set by Surefire for tests).
    */
   public static final String PROP_TEXT_MODE = "kidsplanner.text.mode";
 
-  /** Non-null only in text (CI / piped) mode — do not use with raw {@link System#in} when menus run. */
+  /** Non-null only in text (CI / piped) mode — do not use with raw {@code System.in} when menus run. */
   private final Scanner scanner;
-  /** Shared with {@link ConsoleUi} in menu mode so {@link Scanner} buffering does not steal keys from menus. */
+  /** Shared with {@link ConsoleUi} in menu mode so java.util.Scanner buffering does not steal keys from menus. */
   private final PushbackInputStream menuStdin;
   private final boolean menuMode;
   private final Terminal terminal;
@@ -58,7 +58,7 @@ public class Kidsplanner {
 
   /**
    * @return {@code false} when {@link #PROP_TEXT_MODE} is {@code true}; else {@code true} if
-   *         {@link System#console()} is non-null, or on Windows (jar/bat console without Console API).
+   *         {@code System.console()} is non-null, or on Windows (jar/bat console without Console API).
    */
   static boolean detectMenuMode() {
     if ("true".equals(System.getProperty(PROP_TEXT_MODE))) {
