@@ -72,7 +72,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
               + "notes TEXT,"
               + "FOREIGN KEY (kid_id) REFERENCES kid(id))");
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite sema olusturulamadi.", e);
+      throw new RepositoryException("Could not create SQLite schema.", e);
     }
   }
 
@@ -148,7 +148,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
         }
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite silme islemi basarisiz.", e);
+      throw new RepositoryException("SQLite delete operation failed.", e);
     }
   }
 
@@ -171,7 +171,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
         }
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite cocuk kaydi eklenemedi.", e);
+      throw new RepositoryException("Could not insert kid row in SQLite.", e);
     }
   }
 
@@ -195,7 +195,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
         }
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite aktivite kaydi eklenemedi.", e);
+      throw new RepositoryException("Could not insert activity row in SQLite.", e);
     }
   }
 
@@ -211,7 +211,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
         return mapKid(resultSet);
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite cocuk okunamadi.", e);
+      throw new RepositoryException("Could not read kid from SQLite.", e);
     }
   }
 
@@ -228,7 +228,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
         return mapActivity(resultSet);
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite aktivite okunamadi.", e);
+      throw new RepositoryException("Could not read activity from SQLite.", e);
     }
   }
 
@@ -243,7 +243,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
         list.add(mapKid(resultSet));
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite cocuk listesi okunamadi.", e);
+      throw new RepositoryException("Could not list kids from SQLite.", e);
     }
     return list;
   }
@@ -260,7 +260,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
         list.add(mapActivity(resultSet));
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite aktivite listesi okunamadi.", e);
+      throw new RepositoryException("Could not list activities from SQLite.", e);
     }
     return list;
   }
@@ -268,7 +268,7 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
   /** Updates an existing kid row. */
   private void updateKid(Kid kid) {
     if (kid.getId() == null) {
-      throw new RepositoryException("Guncellenecek cocuk kimligi yok.");
+      throw new RepositoryException("Kid id missing for update.");
     }
     String sql = "UPDATE kid SET display_name=?, birth_year=?, notes=? WHERE id=?";
     try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -281,17 +281,17 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
       statement.setString(3, kid.getNotes());
       statement.setInt(4, kid.getId().intValue());
       if (statement.executeUpdate() == 0) {
-        throw new RepositoryException("Guncellenecek cocuk bulunamadi.");
+        throw new RepositoryException("Kid to update not found.");
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite cocuk guncellenemedi.", e);
+      throw new RepositoryException("Could not update kid in SQLite.", e);
     }
   }
 
   /** Updates an existing activity row. */
   private void updateActivity(Activity activity) {
     if (activity.getId() == null) {
-      throw new RepositoryException("Guncellenecek aktivite kimligi yok.");
+      throw new RepositoryException("Activity id missing for update.");
     }
     String sql =
         "UPDATE activity SET kid_id=?, title=?, act_date=?, start_time=?, end_time=?, type=?, location=?, notes=? WHERE id=?";
@@ -306,10 +306,10 @@ public final class SqliteRepository<T extends HasId<Integer>> implements IReposi
       statement.setString(8, activity.getNotes());
       statement.setInt(9, activity.getId().intValue());
       if (statement.executeUpdate() == 0) {
-        throw new RepositoryException("Guncellenecek aktivite bulunamadi.");
+        throw new RepositoryException("Activity to update not found.");
       }
     } catch (SQLException e) {
-      throw new RepositoryException("SQLite aktivite guncellenemedi.", e);
+      throw new RepositoryException("Could not update activity in SQLite.", e);
     }
   }
 
