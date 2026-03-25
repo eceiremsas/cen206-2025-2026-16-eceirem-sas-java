@@ -28,12 +28,13 @@ public final class PrivacyConsent {
       Path path = Paths.get(FLAG);
       Files.write(path, "consent-granted".getBytes(java.nio.charset.StandardCharsets.UTF_8));
     } catch (IOException e) {
-      throw new RepositoryException("Onay dosyasi yazilamadi.", e);
+      throw new RepositoryException("Could not write consent flag file.", e);
     }
   }
 
   /**
-   * @param menuStdin same stream used for {@link ConsoleUi} menus (e.g. wrapped {@link System#in}); ignored in text mode
+   * @param menuStdin same stream used for {@link ConsoleUi} menus (e.g. wrapped {@code System.in}); ignored in text mode
+   * @param menuMode {@code true} when running with interactive menu UI
    */
   public static void ensureInteractiveConsent(InputStream menuStdin, boolean menuMode) throws IOException {
     ensureInteractiveConsent(null, menuStdin, menuMode);
@@ -45,23 +46,23 @@ public final class PrivacyConsent {
     }
     if (menuMode) {
       List<String> choices = Arrays.asList(
-          "EVET - planlama icin asgari veriyi islemeye onay veriyorum",
-          "Hayir - uygulamayi kapat");
+          "YES - I consent to processing minimal data for planning",
+          "NO - exit the application");
       ConsoleUi.clearScreen(System.out);
       ConsoleUi.printBanner(System.out);
       ConsoleUi.muted(System.out,
-          "Bu uygulama yalnizca planlama icin asgari cocuk profili ve aktivite bilgisi tutar.");
-      ConsoleUi.muted(System.out, "KVKK/GDPR: amac sinirlama, veri minimizasyonu, gereksiz alan tutulmaz.");
-      ConsoleUi.muted(System.out, "Ok / Tab / Enter ile secin; numara ile menu yok (ders kurali).");
-      int idx = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Gizlilik / Kisisel Veri", choices,
-          "Secim hukuki onay niteligindedir.");
+          "This app stores only minimal child profile and activity data for planning.");
+      ConsoleUi.muted(System.out, "KVKK/GDPR: purpose limitation, data minimization; no unnecessary fields.");
+      ConsoleUi.muted(System.out, "Use arrows / Tab / Enter to choose; no numeric menu (course rule).");
+      int idx = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Privacy / personal data", choices,
+          "Your choice constitutes legal consent.");
       if (idx != 0) {
-        System.out.println("Onay verilmedi. Uygulama kapaniyor.");
-        throw new RepositoryException("Onay verilmedi.");
+        System.out.println("Consent not given. Closing application.");
+        throw new RepositoryException("Consent not given.");
       }
       writeConsentFlag();
       return;
     }
-    System.out.println("[Bilgi] Metin modu: gizlilik ozeti - yalnizca planlama verisi, minimizasyon uygulanir.");
+    System.out.println("[Info] Text mode: privacy summary — planning data only; minimization applies.");
   }
 }

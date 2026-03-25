@@ -67,7 +67,7 @@ public class KidsplannerAppTest {
     }
 
     String output = capturedOut.toString(StandardCharsets.UTF_8.name());
-    assertTrue(output.contains("Uygulama kapatildi."));
+    assertTrue(output.contains("Application closed."));
   }
 
   /**
