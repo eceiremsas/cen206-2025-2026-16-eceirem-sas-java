@@ -11,6 +11,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import org.jline.terminal.Terminal;
+import org.jline.utils.NonBlockingReader;
 
 /**
  * Rich console styling (ANSI) and keyboard navigation (arrow keys / Tab / Home / End) for menus.
@@ -52,7 +54,7 @@ public final class ConsoleUi {
     out.println();
     out.println(DIM + "  ┌────────────────────────────────────────────────────────────┐" + RESET);
     out.println(FG_CYAN + BOLD + "  │" + RESET + "   " + FG_WHITE + BOLD + "KIDS  PLANNER" + RESET + "  "
-        + FG_MAGENTA + "\u2022" + RESET + "  " + DIM + "CEN206 \u00b7 Konsol Midterm" + "          " + FG_CYAN + BOLD + "│" + RESET);
+        + FG_MAGENTA + "." + RESET + "  " + DIM + "CEN206 Kids Activity Planner Midterm Project" + " " + FG_CYAN + BOLD + "│" + RESET);
     out.println(FG_GREEN + BOLD + "  │" + RESET + "   " + DIM + "Cocuk ve aktivite yonetimi \u00b7 Binary \u00b7 SQLite \u00b7 MySQL" + "     " + FG_GREEN + BOLD + "│" + RESET);
     out.println(DIM + "  └────────────────────────────────────────────────────────────┘" + RESET);
     out.println();
@@ -107,6 +109,88 @@ public final class ConsoleUi {
       buf.write(b);
     }
     return new String(buf.toByteArray(), StandardCharsets.UTF_8);
+  }
+
+  /**
+   * Prefer this overload in menu mode when a JLine {@link Terminal} is available (works with java -jar on Windows).
+   */
+  public static int readMenuChoice(Terminal terminal, InputStream fallbackIn, PrintStream out, String title,
+      List<String> options, String statusLine) throws IOException {
+    if (terminal != null) {
+      return readMenuChoiceJline(terminal, out, title, options, statusLine);
+    }
+    return readMenuChoice(fallbackIn, out, title, options, statusLine);
+  }
+
+  private static int readMenuChoiceJline(Terminal terminal, PrintStream out, String title, List<String> options,
+      String statusLine) throws IOException {
+    if (options.isEmpty()) {
+      return -1;
+    }
+    int index = 0;
+    terminal.enterRawMode();
+    NonBlockingReader reader = terminal.reader();
+    while (true) {
+      clearScreen(out);
+      printBanner(out);
+      LocalDate today = LocalDate.now();
+      LocalTime now = LocalTime.now();
+      String clock = today + "  " + now.format(TIME_FMT);
+      out.println("  " + DIM + "Saat: " + RESET + FG_CYAN + clock + RESET);
+      out.println();
+      drawMenuBox(out, title, options, index);
+      out.println();
+      if (statusLine != null && !statusLine.isEmpty()) {
+        out.println("  " + DIM + statusLine + RESET);
+        out.println();
+      }
+      out.println("  " + DIM + "Ok tuslari \u00b7 Tab \u00b7 Enter \u00b7 Esc/Q: cikis" + RESET);
+      out.flush();
+
+      int ch = reader.read();
+      if (ch == -1) {
+        return options.size() - 1;
+      }
+      if (ch == '\r' || ch == '\n') {
+        return index;
+      }
+      if (ch == '\t') {
+        index = (index + 1) % options.size();
+        continue;
+      }
+      if (ch == 'q' || ch == 'Q') {
+        return options.size() - 1;
+      }
+      // Arrow keys / navigation (ANSI)
+      if (ch == 27) {
+        int nav = readAnsiNavigation(terminal.input());
+        if (nav == NAV_QUIT) {
+          return options.size() - 1;
+        }
+        if (nav != NAV_NONE) {
+          index = applyNav(nav, index, options.size());
+        }
+        continue;
+      }
+      // Windows scan codes also work in some environments even in raw
+      if (ch == 0 || ch == 224) {
+        int scan = reader.read();
+        int nav = windowsScanToNav(scan);
+        if (nav != NAV_NONE) {
+          index = applyNav(nav, index, options.size());
+        }
+        continue;
+      }
+      // Fallback keys
+      if (ch == 'w' || ch == 'W' || ch == 'k' || ch == 'K') {
+        index = (index - 1 + options.size()) % options.size();
+        continue;
+      }
+      if (ch == 's' || ch == 'S' || ch == 'j' || ch == 'J') {
+        index = (index + 1) % options.size();
+        continue;
+      }
+    }
   }
 
   /**
@@ -173,6 +257,15 @@ public final class ConsoleUi {
         index = (index + 1) % options.size();
         continue;
       }
+      // vim-style fallback (some IDE consoles swallow arrow keys)
+      if (read == 'k' || read == 'K') {
+        index = (index - 1 + options.size()) % options.size();
+        continue;
+      }
+      if (read == 'j' || read == 'J') {
+        index = (index + 1) % options.size();
+        continue;
+      }
       // Windows conhost (classic cmd, VT off): prefix 0x00 or 0xE0 + virtual-key scan code
       if (read == 0 || read == 224) {
         int scan = in.read();
@@ -200,6 +293,17 @@ public final class ConsoleUi {
           ((PushbackInputStream) in).unread(read);
         }
         readUtf8Byte(in, buffer);
+        continue;
+      }
+      // 8-bit CSI (single byte control sequence introducer)
+      if (read == 0x9B) {
+        int nav = readCsiNavigation(in);
+        if (nav == NAV_QUIT) {
+          return options.size() - 1;
+        }
+        if (nav != NAV_NONE) {
+          index = applyNav(nav, index, options.size());
+        }
         continue;
       }
       if (read == 27) {
@@ -236,7 +340,8 @@ public final class ConsoleUi {
     out.println(TEE_L + repeat(HLINE, inner + 2) + TEE_R);
     for (int i = 0; i < options.size(); i++) {
       String label = options.get(i);
-      String plain = (i == selectedIndex) ? ("\u25b8 " + label) : ("  " + label);
+      // Use a simple ASCII dot so it renders reliably in all Windows consoles.
+      String plain = (i == selectedIndex) ? (". " + label) : ("  " + label);
       while (plain.length() < inner + 2) {
         plain += " ";
       }
@@ -450,36 +555,10 @@ public final class ConsoleUi {
   }
 
   /**
-   * After leading ESC (27), interprets the rest of an ANSI navigation sequence.
+   * Reads a CSI navigation sequence when the introducer is already consumed.
+   * Expected forms: A/B (arrows), H/F (home/end) or <n>~ (home/end/pgup/pgdn).
    */
-  private static int readAnsiNavigation(InputStream in) throws IOException {
-    int second = in.read();
-    if (second == -1) {
-      return NAV_QUIT;
-    }
-    if (second == 'q' || second == 'Q') {
-      return NAV_QUIT;
-    }
-    // SS3 cursor keys: ESC O A / ESC O B (some terminals)
-    if (second == 'O') {
-      int third = in.read();
-      if (third == 'A') {
-        return NAV_UP;
-      }
-      if (third == 'B') {
-        return NAV_DOWN;
-      }
-      if (third == 'H') {
-        return NAV_HOME;
-      }
-      if (third == 'F') {
-        return NAV_END;
-      }
-      return NAV_NONE;
-    }
-    if (second != '[') {
-      return NAV_NONE;
-    }
+  private static int readCsiNavigation(InputStream in) throws IOException {
     StringBuilder params = new StringBuilder();
     while (true) {
       int c = in.read();
@@ -519,6 +598,40 @@ public final class ConsoleUi {
       }
       params.append((char) c);
     }
+  }
+
+  /**
+   * After leading ESC (27), interprets the rest of an ANSI navigation sequence.
+   */
+  private static int readAnsiNavigation(InputStream in) throws IOException {
+    int second = in.read();
+    if (second == -1) {
+      return NAV_QUIT;
+    }
+    if (second == 'q' || second == 'Q') {
+      return NAV_QUIT;
+    }
+    // SS3 cursor keys: ESC O A / ESC O B (some terminals)
+    if (second == 'O') {
+      int third = in.read();
+      if (third == 'A') {
+        return NAV_UP;
+      }
+      if (third == 'B') {
+        return NAV_DOWN;
+      }
+      if (third == 'H') {
+        return NAV_HOME;
+      }
+      if (third == 'F') {
+        return NAV_END;
+      }
+      return NAV_NONE;
+    }
+    if (second != '[') {
+      return NAV_NONE;
+    }
+    return readCsiNavigation(in);
   }
 
   private static int readUtf8Byte(InputStream in, byte[] single) throws IOException {

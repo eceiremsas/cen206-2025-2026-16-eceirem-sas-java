@@ -132,6 +132,12 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<version>8.2.0</version>
 		</dependency>
+		<!-- Robust cross-platform console input (raw mode / arrow keys) for java -jar on Windows -->
+		<dependency>
+			<groupId>org.jline</groupId>
+			<artifactId>jline</artifactId>
+			<version>3.25.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>

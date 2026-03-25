@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import org.jline.terminal.Terminal;
 
 /**
  * Minimal consent capture aligned with KVKK/GDPR data-minimization narrative for the planner.
@@ -35,6 +36,10 @@ public final class PrivacyConsent {
    * @param menuStdin same stream used for {@link ConsoleUi} menus (e.g. wrapped {@link System#in}); ignored in text mode
    */
   public static void ensureInteractiveConsent(InputStream menuStdin, boolean menuMode) throws IOException {
+    ensureInteractiveConsent(null, menuStdin, menuMode);
+  }
+
+  public static void ensureInteractiveConsent(Terminal terminal, InputStream menuStdin, boolean menuMode) throws IOException {
     if (hasConsentFlag()) {
       return;
     }
@@ -48,7 +53,7 @@ public final class PrivacyConsent {
           "Bu uygulama yalnizca planlama icin asgari cocuk profili ve aktivite bilgisi tutar.");
       ConsoleUi.muted(System.out, "KVKK/GDPR: amac sinirlama, veri minimizasyonu, gereksiz alan tutulmaz.");
       ConsoleUi.muted(System.out, "Ok / Tab / Enter ile secin; numara ile menu yok (ders kurali).");
-      int idx = ConsoleUi.readMenuChoice(menuStdin, System.out, "Gizlilik / Kisisel Veri", choices,
+      int idx = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Gizlilik / Kisisel Veri", choices,
           "Secim hukuki onay niteligindedir.");
       if (idx != 0) {
         System.out.println("Onay verilmedi. Uygulama kapaniyor.");

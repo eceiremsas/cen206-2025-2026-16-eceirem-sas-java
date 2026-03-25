@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Scanner;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
 /**
 
@@ -47,6 +49,7 @@ public class Kidsplanner {
   /** Shared with {@link ConsoleUi} in menu mode so {@link Scanner} buffering does not steal keys from menus. */
   private final PushbackInputStream menuStdin;
   private final boolean menuMode;
+  private final Terminal terminal;
   private IRepository<Kid> kidRepository;
   private IRepository<Activity> activityRepository;
 
@@ -70,11 +73,19 @@ public class Kidsplanner {
     if (mm) {
       this.menuStdin = new PushbackInputStream(System.in, 64);
       this.scanner = null;
+      Terminal t = null;
+      try {
+        t = TerminalBuilder.builder().system(true).jna(true).build();
+      } catch (Exception e) {
+        t = null;
+      }
+      this.terminal = t;
       this.menuMode = true;
     } else {
       this.menuStdin = null;
       this.scanner = new Scanner(System.in, StandardCharsets.UTF_8.name());
       this.menuMode = false;
+      this.terminal = null;
     }
     reloadRepositories();
   }
@@ -89,6 +100,7 @@ public class Kidsplanner {
     this.scanner = scanner;
     this.menuStdin = null;
     this.menuMode = false;
+    this.terminal = null;
     reloadRepositories();
   }
 
@@ -106,7 +118,7 @@ public class Kidsplanner {
 
   public void run() {
     try {
-      PrivacyConsent.ensureInteractiveConsent(menuMode ? menuStdin : System.in, menuMode);
+      PrivacyConsent.ensureInteractiveConsent(terminal, menuMode ? menuStdin : System.in, menuMode);
       if (menuMode) {
         runMenuMode();
       } else {
@@ -132,10 +144,10 @@ public class Kidsplanner {
         "Cocuk yonetimi",
         "Aktivite yonetimi",
         "Depolama (Binary / SQLite / MySQL)",
-        "Yardim ve format ozeti",
+        "Ders gereksinimleri (checklist)",
         "Cikis");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Ana Menu", main, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Ana Menu", main, menuStatusLine());
       if (choice == 0) {
         runKidMenu();
       } else if (choice == 1) {
@@ -155,7 +167,7 @@ public class Kidsplanner {
   private void runKidMenu() throws IOException {
     List<String> items = Arrays.asList("Cocuk ekle", "Cocuklari listele", "Cocuk sil", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Cocuk Yonetimi", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Cocuk Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addKidInteractive();
       } else if (choice == 1) {
@@ -182,7 +194,7 @@ public class Kidsplanner {
         "Bugunun programi (sirali)",
         "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Aktivite Yonetimi", items, menuStatusLine());
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Aktivite Yonetimi", items, menuStatusLine());
       if (choice == 0) {
         addActivityInteractiveMenu();
       } else if (choice == 1) {
@@ -209,26 +221,65 @@ public class Kidsplanner {
   private void runStorageMenu() throws IOException {
     List<String> items = Arrays.asList("Binary dosya", "SQLite", "MySQL", "Geri");
     while (true) {
-      int choice = ConsoleUi.readMenuChoice(menuStdin, System.out, "Depolama Motoru", items, menuStatusLine());
+      String info = "Binary: .bin dosyasi | SQLite: kidsplanner.db | MySQL: docker ile veritabani";
+      int choice = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Depolama Motoru", items, info);
       if (choice == 0) {
-        RepositoryFactory.setActiveStorage(StorageType.BINARY);
-        reloadRepositories();
-        ConsoleUi.successLine(System.out, "Aktif depolama: BINARY");
+        switchStorageWithUi(StorageType.BINARY);
       } else if (choice == 1) {
-        RepositoryFactory.setActiveStorage(StorageType.SQLITE);
-        reloadRepositories();
-        ConsoleUi.successLine(System.out, "Aktif depolama: SQLITE");
+        switchStorageWithUi(StorageType.SQLITE);
       } else if (choice == 2) {
-        RepositoryFactory.setActiveStorage(StorageType.MYSQL);
-        reloadRepositories();
-        ConsoleUi.successLine(System.out, "Aktif depolama: MYSQL");
+        switchStorageWithUi(StorageType.MYSQL);
       } else {
         break;
       }
+    }
+  }
+
+  private void switchStorageWithUi(StorageType target) throws IOException {
+    ConsoleUi.clearScreen(System.out);
+    ConsoleUi.printBanner(System.out);
+    ConsoleUi.title(System.out, "Depolama degistir");
+    try {
+      RepositoryFactory.setActiveStorage(target);
+      reloadRepositories(); // may create schema
+      ConsoleUi.successLine(System.out, "Aktif depolama: " + target.name());
+      System.out.println();
+      explainStorage(target);
+      System.out.println();
       System.out.println(RepositoryFactory.describeJdbcTargets());
-      System.out.println("Uyari: Backend degisince veriler otomatik tasınmaz; yeni depoda bos veya mevcut kayitlar.");
-      System.out.println("Devam icin Enter...");
-      nextLine();
+      System.out.println("Uyari: Backend degisince veriler otomatik tasınmaz (her depo ayri).");
+    } catch (RepositoryException e) {
+      RepositoryFactory.setActiveStorage(StorageType.BINARY);
+      reloadRepositories();
+      System.out.println("Hata: " + e.getMessage());
+      System.out.println();
+      System.out.println("Cozum onergisi:");
+      if (target == StorageType.MYSQL) {
+        System.out.println("- docker compose ile MySQL'i calistir (proje kokundeki docker-compose.yml).");
+        System.out.println("- Sonra tekrar Depolama > MySQL sec.");
+      } else if (target == StorageType.SQLITE) {
+        System.out.println("- kidsplanner.db ayni klasorde olusur; yazma izni var mi kontrol et.");
+      } else {
+        System.out.println("- Binary icin proje klasorunde .bin dosyalarina yazma izni gerekir.");
+      }
+      System.out.println();
+      System.out.println("Not: Guvenli mod icin BINARY'ye geri donuldu.");
+    }
+    System.out.println();
+    System.out.println("Devam icin Enter...");
+    nextLine();
+  }
+
+  private void explainStorage(StorageType storage) {
+    if (storage == StorageType.BINARY) {
+      System.out.println("Binary (dosya): kidsplanner-kids.bin ve kidsplanner-activities.bin dosyalarina kaydeder.");
+      System.out.println("Avantaj: kurulum yok. Dezavantaj: dosya tabanli oldugu icin sorgu esnek degil.");
+    } else if (storage == StorageType.SQLITE) {
+      System.out.println("SQLite (tek dosya DB): kidsplanner.db icine kid/activity tablolarini olusturur ve kaydeder.");
+      System.out.println("Avantaj: kurulum yok, SQL var. Dezavantaj: buyuk/cok kullanici icin sinirli.");
+    } else if (storage == StorageType.MYSQL) {
+      System.out.println("MySQL (sunucu DB): Docker ile calisan MySQL'e baglanir ve tabloları olusturur.");
+      System.out.println("Avantaj: gercek sunucu DB. Dezavantaj: docker/mysql calismali (port 3306).");
     }
   }
 
@@ -304,7 +355,7 @@ public class Kidsplanner {
     }
     labels.add("Geri (aktivite menusune don)");
     labels.add("+ Yeni cocuk");
-    int idx = ConsoleUi.readMenuChoice(menuStdin, System.out, "Cocuk secin", labels, menuStatusLine());
+    int idx = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, "Cocuk secin", labels, menuStatusLine());
     int idxGeri = labels.size() - 2;
     int idxYeni = labels.size() - 1;
     if (idx == idxYeni) {
@@ -513,22 +564,23 @@ public class Kidsplanner {
   private void showHelpMenu() {
     ConsoleUi.clearScreen(System.out);
     ConsoleUi.printBanner(System.out);
-    ConsoleUi.title(System.out, "Yardim ve ders gereksinimleri");
-    ConsoleUi.muted(System.out, "Tum menulerde secim: ok tuslari, Tab (sonraki oge), Home / End, Enter.");
-    ConsoleUi.muted(System.out, "Ana menusu rakam ile calismaz; yalnizca klavye ile gezinme (ogretim hedefi).");
+    ConsoleUi.title(System.out, "Ders gereksinimleri (checklist)");
+    ConsoleUi.muted(System.out, "Bu sayfa yalnizca ders gereksinimlerini ve projede olanlari listeler.");
     ConsoleUi.rule(System.out);
-    System.out.println("  " + ConsoleUi.FG_CYAN + "Tarih" + ConsoleUi.RESET + " : yyyy-MM-dd");
-    System.out.println("  " + ConsoleUi.FG_CYAN + "Saat" + ConsoleUi.RESET + "  : HH:mm");
-    System.out.println("  " + ConsoleUi.FG_CYAN + "Tipler" + ConsoleUi.RESET
-        + " : STUDY, PLAY, SPORT, ART, SLEEP, SOCIAL");
+    System.out.println("  [VAR] Klavye ile gezinilebilir menu (ok/Tab/Enter) - sayisal secim yok");
+    System.out.println("  [VAR] CRUD (cocuk + aktivite) ekranlari");
+    System.out.println("  [VAR] Veri dogrulama/kurallar (saat cakismasi engeli)");
+    System.out.println("  [VAR] Kalici veri: Binary + SQLite + MySQL (calisirken secilebilir)");
+    System.out.println("  [VAR] MySQL icin Docker compose destegi (docker-compose.yml)");
+    System.out.println("  [VAR] Unit testler: JUnit 5 (metin modu ile otomatik)");
+    System.out.println("  [VAR] Code coverage: JaCoCo raporu (target/site/jacoco)");
     ConsoleUi.rule(System.out);
-    ConsoleUi.muted(System.out, "Cakisma: Ayni cocuk + ayni gun icinde zaman araliklari kesismemeli.");
-    ConsoleUi.muted(System.out, "KVKK: Asgari cocuk profili; gereksiz alan tutulmaz (ayrica Gizlilik menusu).");
-    ConsoleUi.muted(System.out, "MySQL: Proje kokundeki docker-compose.yml ile veritabani ayaga kaldirilir.");
+    System.out.println("  Format ozeti");
+    System.out.println("  - Tarih : yyyy-MM-dd");
+    System.out.println("  - Saat  : HH:mm");
+    System.out.println("  - Tipler: STUDY, PLAY, SPORT, ART, SLEEP, SOCIAL");
     System.out.println();
-    System.out.println(RepositoryFactory.describeJdbcTargets());
-    System.out.println();
-    ConsoleUi.muted(System.out, "Metin modu (CI / stdin): komutlar open, add, list, kid-add, storage, exit ...");
+    System.out.println("  Not: Depolama > MySQL secince 'sema olusturulamadi' gorursen, once docker ile MySQL'i baslat.");
   }
 
   private void addActivity() throws IOException {
