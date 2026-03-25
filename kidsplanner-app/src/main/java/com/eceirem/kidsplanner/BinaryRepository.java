@@ -59,10 +59,9 @@ public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T
     try (ObjectInputStream input = new ObjectInputStream(new FileInputStream(filePath))) {
       Object read = input.readObject();
       return (Map<Integer, T>) read;
-    } catch (IOException e) {
+    } catch (IOException | ClassNotFoundException e) {
+      // Treat missing/corrupted/unknown binary data as empty store to keep the app usable.
       return new HashMap<Integer, T>();
-    } catch (ClassNotFoundException e) {
-      throw new RepositoryException("Binary veri okunamadi.", e);
     }
   }
 

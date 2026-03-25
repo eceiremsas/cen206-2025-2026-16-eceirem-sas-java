@@ -3,10 +3,14 @@ package com.eceirem.kidsplanner;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * Scheduled activity for a specific child (kidId). Overlap rules apply per kid and date.
+ */
 public class Activity implements HasId<Integer> {
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   private Integer id;
+  private Integer kidId;
   private String title;
   private LocalDate date;
   private LocalTime startTime;
@@ -20,6 +24,11 @@ public class Activity implements HasId<Integer> {
 
   public Activity(String title, LocalDate date, LocalTime startTime, LocalTime endTime, ActivityType type, String location,
       String notes) {
+    this(title, date, startTime, endTime, type, location, notes, null);
+  }
+
+  public Activity(String title, LocalDate date, LocalTime startTime, LocalTime endTime, ActivityType type, String location,
+      String notes, Integer kidId) {
     this.title = title;
     this.date = date;
     this.startTime = startTime;
@@ -27,6 +36,7 @@ public class Activity implements HasId<Integer> {
     this.type = type;
     this.location = location;
     this.notes = notes;
+    this.kidId = kidId;
   }
 
   @Override
@@ -39,37 +49,73 @@ public class Activity implements HasId<Integer> {
     this.id = id;
   }
 
+  public Integer getKidId() {
+    return kidId;
+  }
+
+  public void setKidId(Integer kidId) {
+    this.kidId = kidId;
+  }
+
   public String getTitle() {
     return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
   }
 
   public LocalDate getDate() {
     return date;
   }
 
+  public void setDate(LocalDate date) {
+    this.date = date;
+  }
+
   public LocalTime getStartTime() {
     return startTime;
+  }
+
+  public void setStartTime(LocalTime startTime) {
+    this.startTime = startTime;
   }
 
   public LocalTime getEndTime() {
     return endTime;
   }
 
+  public void setEndTime(LocalTime endTime) {
+    this.endTime = endTime;
+  }
+
   public ActivityType getType() {
     return type;
+  }
+
+  public void setType(ActivityType type) {
+    this.type = type;
   }
 
   public String getLocation() {
     return location;
   }
 
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
   public String getNotes() {
     return notes;
   }
 
+  public void setNotes(String notes) {
+    this.notes = notes;
+  }
+
   @Override
   public String toString() {
-    return "Activity{id=" + id + ", title='" + title + "', date=" + date + ", start=" + startTime + ", end=" + endTime + ", type=" + type
-        + ", location='" + location + "'}";
+    return "Activity{id=" + id + ", kidId=" + kidId + ", title='" + title + "', date=" + date + ", start=" + startTime
+        + ", end=" + endTime + ", type=" + type + ", location='" + location + "'}";
   }
 }
