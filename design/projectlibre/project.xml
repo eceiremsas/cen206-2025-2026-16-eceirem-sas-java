@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/project" SaveVersion="14" Name="Kids Activity Planner - Sprint 1">
+  <Title>Kids Activity Planner - Sprint 1 (Midterm)</Title>
+  <Company>RTEU - CEN206</Company>
+  <Author>Team 10</Author>
+  <StartDate>2026-03-20T08:00:00</StartDate>
+  <CurrentDate>2026-03-25T12:00:00</CurrentDate>
+  <MinutesPerDay>480</MinutesPerDay>
+  <MinutesPerWeek>2400</MinutesPerWeek>
+  <DaysPerMonth>20</DaysPerMonth>
+
+  <Tasks>
+    <Task>
+      <UID>0</UID>
+      <ID>0</ID>
+      <Name>Sprint 1 (Midterm)</Name>
+      <Type>1</Type>
+      <IsNull>0</IsNull>
+      <OutlineNumber>1</OutlineNumber>
+      <OutlineLevel>1</OutlineLevel>
+      <Start>2026-03-20T08:00:00</Start>
+      <Finish>2026-03-26T14:00:00</Finish>
+      <Duration>PT0H0M0S</Duration>
+      <Summary>1</Summary>
+    </Task>
+
+    <Task><UID>1</UID><ID>1</ID><Name>Console UI (menu + text mode)</Name><OutlineNumber>1.1</OutlineNumber><OutlineLevel>2</OutlineLevel><Start>2026-03-20T08:00:00</Start><Finish>2026-03-21T17:00:00</Finish></Task>
+    <Task><UID>2</UID><ID>2</ID><Name>Domain model (Kid/Activity)</Name><OutlineNumber>1.2</OutlineNumber><OutlineLevel>2</OutlineLevel><Start>2026-03-21T08:00:00</Start><Finish>2026-03-21T17:00:00</Finish></Task>
+    <Task><UID>3</UID><ID>3</ID><Name>Persistence (Binary/SQLite/MySQL)</Name><OutlineNumber>1.3</OutlineNumber><OutlineLevel>2</OutlineLevel><Start>2026-03-22T08:00:00</Start><Finish>2026-03-23T17:00:00</Finish></Task>
+    <Task><UID>4</UID><ID>4</ID><Name>Validation + overlap rules</Name><OutlineNumber>1.4</OutlineNumber><OutlineLevel>2</OutlineLevel><Start>2026-03-24T08:00:00</Start><Finish>2026-03-24T12:00:00</Finish></Task>
+    <Task><UID>5</UID><ID>5</ID><Name>JUnit tests + coverage</Name><OutlineNumber>1.5</OutlineNumber><OutlineLevel>2</OutlineLevel><Start>2026-03-24T13:00:00</Start><Finish>2026-03-25T17:00:00</Finish></Task>
+    <Task><UID>6</UID><ID>6</ID><Name>Design docs + report</Name><OutlineNumber>1.6</OutlineNumber><OutlineLevel>2</OutlineLevel><Start>2026-03-25T08:00:00</Start><Finish>2026-03-26T14:00:00</Finish></Task>
+  </Tasks>
+</Project>
+

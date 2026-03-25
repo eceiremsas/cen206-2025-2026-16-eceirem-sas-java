@@ -1,0 +1,23 @@
+@startuml
+title C4 - Component (Sprint 1)
+
+rectangle "Kidsplanner (controller)" as kp
+rectangle "ConsoleUi (UI)" as ui
+rectangle "PrivacyConsent" as consent
+rectangle "RepositoryFactory" as factory
+rectangle "IRepository<Kid>" as kidRepo
+rectangle "IRepository<Activity>" as actRepo
+rectangle "Kid / Activity (domain)" as domain
+
+kp --> consent
+kp --> ui
+kp --> factory
+kp --> kidRepo
+kp --> actRepo
+kp --> domain
+
+factory --> kidRepo : creates
+factory --> actRepo : creates
+
+@enduml
+

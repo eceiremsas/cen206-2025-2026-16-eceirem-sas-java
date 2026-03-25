@@ -1,0 +1,94 @@
+@startuml
+title Kids Activity Planner - Class Diagram (Sprint 1)
+
+skinparam classAttributeIconSize 0
+
+package "com.eceirem.kidsplanner" {
+  interface HasId<T> {
+    +getId() : T
+    +setId(id : T) : void
+  }
+
+  interface IRepository<T> {
+    +save(entity : T) : void
+    +findById(id : int) : T
+    +findAll() : List<T>
+    +update(entity : T) : void
+    +delete(id : int) : void
+  }
+
+  enum StorageType {
+    BINARY
+    SQLITE
+    MYSQL
+  }
+
+  enum ActivityType {
+    STUDY
+    PLAY
+    SPORT
+    ART
+    SLEEP
+    SOCIAL
+  }
+
+  class Kid {
+    -id : Integer
+    -displayName : String
+    -birthYear : Integer
+    -notes : String
+  }
+
+  class Activity {
+    -id : Integer
+    -kidId : Integer
+    -title : String
+    -date : LocalDate
+    -startTime : LocalTime
+    -endTime : LocalTime
+    -type : ActivityType
+    -location : String
+    -notes : String
+  }
+
+  class RepositoryFactory {
+    {static} -activeStorage : StorageType
+    {static} +setActiveStorage(storageType : StorageType) : void
+    {static} +getActiveStorage() : StorageType
+    {static} +createKidRepository() : IRepository<Kid>
+    {static} +createActivityRepository() : IRepository<Activity>
+  }
+
+  class BinaryRepository<T> {
+    -filePath : String
+  }
+
+  class SqliteRepository<T>
+  class MysqlRepository<T>
+  class Kidsplanner
+  class ConsoleUi
+  class PrivacyConsent
+  class RepositoryException
+  class ValidationException
+}
+
+Kid ..|> HasId
+Activity ..|> HasId
+
+BinaryRepository ..|> IRepository
+SqliteRepository ..|> IRepository
+MysqlRepository ..|> IRepository
+
+RepositoryFactory ..> IRepository : creates
+RepositoryFactory ..> BinaryRepository
+RepositoryFactory ..> SqliteRepository
+RepositoryFactory ..> MysqlRepository
+
+Kidsplanner ..> RepositoryFactory
+Kidsplanner ..> ConsoleUi
+Kidsplanner ..> PrivacyConsent
+
+Activity --> Kid : kidId
+
+@enduml
+

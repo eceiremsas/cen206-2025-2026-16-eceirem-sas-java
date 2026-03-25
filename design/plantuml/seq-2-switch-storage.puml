@@ -1,0 +1,29 @@
+@startuml
+title Sequence - Switch Storage (Menu/Text)
+
+actor User
+participant "Kidsplanner" as KP
+participant "RepositoryFactory" as RF
+participant "SqliteRepository" as SR
+participant "MysqlRepository" as MR
+
+User -> KP : choose storage (binary/sqlite/mysql)
+KP -> RF : setActiveStorage(type)
+KP -> KP : reloadRepositories()
+
+alt type == SQLITE
+  KP -> RF : createKidRepository()
+  RF -> SR : new SqliteRepository(...)
+  SR --> RF : repo
+else type == MYSQL
+  KP -> RF : createKidRepository()
+  RF -> MR : new MysqlRepository(...)
+  MR --> RF : repo / throws if DB down
+else type == BINARY
+  KP -> RF : createKidRepository()
+end
+
+KP --> User : storage info / error message
+
+@enduml
+

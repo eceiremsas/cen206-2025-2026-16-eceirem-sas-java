@@ -1,0 +1,24 @@
+@startuml
+title Kids Activity Planner - Use Case Diagram (Sprint 1)
+left to right direction
+
+actor Parent as P
+
+rectangle "Kids Activity Planner" {
+  usecase "Grant privacy consent" as UC_Consent
+  usecase "Manage kids\n(Add/List/Delete)" as UC_Kids
+  usecase "Manage activities\n(Add/List/Update/Delete)" as UC_Acts
+  usecase "View today's plan" as UC_Today
+  usecase "Switch storage\n(Binary/SQLite/MySQL)" as UC_Storage
+  usecase "View help / checklist" as UC_Help
+}
+
+P --> UC_Consent
+P --> UC_Kids
+P --> UC_Acts
+P --> UC_Today
+P --> UC_Storage
+P --> UC_Help
+
+@enduml
+

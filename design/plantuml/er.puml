@@ -1,0 +1,31 @@
+@startuml
+title Kids Activity Planner - ER Diagram (Sprint 1)
+
+hide circle
+skinparam linetype ortho
+
+entity "kid" as kid {
+  * id : INT <<PK>>
+  --
+  display_name : TEXT
+  birth_year : INT (nullable)
+  notes : TEXT (nullable)
+}
+
+entity "activity" as activity {
+  * id : INT <<PK>>
+  --
+  kid_id : INT <<FK>>
+  title : TEXT
+  act_date : DATE/TEXT
+  start_time : TIME/TEXT
+  end_time : TIME/TEXT
+  type : TEXT
+  location : TEXT (nullable)
+  notes : TEXT (nullable)
+}
+
+kid ||--o{ activity : "kid_id"
+
+@enduml
+
