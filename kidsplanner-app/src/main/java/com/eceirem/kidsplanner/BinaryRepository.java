@@ -10,11 +10,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link IRepository} using Java serialization to a single file.
+ *
+ * @param <T> {@link Kid} or {@link Activity}
+ */
 public class BinaryRepository<T extends HasId<Integer>> implements IRepository<T> {
   private final String filePath;
   private final Map<Integer, T> data;
   private int nextId;
 
+  /**
+   * Loads existing map from disk or starts empty if missing/unreadable.
+   *
+   * @param filePath path to the binary store
+   */
   public BinaryRepository(String filePath) {
     this.filePath = filePath;
     this.data = loadData();

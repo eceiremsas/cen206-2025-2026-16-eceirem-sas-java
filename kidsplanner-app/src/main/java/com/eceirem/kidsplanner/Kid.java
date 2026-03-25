@@ -11,9 +11,15 @@ public class Kid implements HasId<Integer> {
   private Integer birthYear;
   private String notes;
 
+  /** No-arg constructor for serialization. */
   public Kid() {
   }
 
+  /**
+   * @param displayName shown in UI
+   * @param birthYear optional
+   * @param notes optional
+   */
   public Kid(String displayName, Integer birthYear, String notes) {
     this.displayName = displayName;
     this.birthYear = birthYear;

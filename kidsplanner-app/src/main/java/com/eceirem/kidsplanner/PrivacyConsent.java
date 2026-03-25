@@ -40,6 +40,14 @@ public final class PrivacyConsent {
     ensureInteractiveConsent(null, menuStdin, menuMode);
   }
 
+  /**
+   * Shows consent UI once until flag file exists.
+   *
+   * @param terminal JLine terminal if available; may be {@code null}
+   * @param menuStdin stdin shared with {@link ConsoleUi} in menu mode
+   * @param menuMode {@code true} for full-screen menus
+   * @throws IOException on I/O errors
+   */
   public static void ensureInteractiveConsent(Terminal terminal, InputStream menuStdin, boolean menuMode) throws IOException {
     if (hasConsentFlag()) {
       return;

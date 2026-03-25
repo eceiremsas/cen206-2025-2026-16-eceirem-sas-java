@@ -16,8 +16,11 @@ import java.util.List;
  */
 public final class MysqlRepository<T extends HasId<Integer>> implements IRepository<T> {
 
+  /** Row set this repository instance reads and writes. */
   public enum EntityKind {
+    /** {@link Kid} table */
     KID,
+    /** {@link Activity} table */
     ACTIVITY
   }
 
@@ -26,6 +29,14 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
   private final String password;
   private final EntityKind kind;
 
+  /**
+   * Connects, ensures schema, and binds to one {@link EntityKind}.
+   *
+   * @param jdbcUrl JDBC URL including database name
+   * @param username DB user
+   * @param password DB password
+   * @param kind kid or activity repository
+   */
   public MysqlRepository(String jdbcUrl, String username, String password, EntityKind kind) {
     this.jdbcUrl = jdbcUrl;
     this.username = username;

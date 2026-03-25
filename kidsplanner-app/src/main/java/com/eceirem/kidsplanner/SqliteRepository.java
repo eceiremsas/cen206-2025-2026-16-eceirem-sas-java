@@ -16,14 +16,23 @@ import java.util.List;
  */
 public final class SqliteRepository<T extends HasId<Integer>> implements IRepository<T> {
 
+  /** Row set this repository instance reads and writes. */
   public enum EntityKind {
+    /** {@link Kid} table */
     KID,
+    /** {@link Activity} table */
     ACTIVITY
   }
 
   private final String jdbcUrl;
   private final EntityKind kind;
 
+  /**
+   * Ensures SQLite schema and binds to one {@link EntityKind}.
+   *
+   * @param jdbcUrl e.g. {@code jdbc:sqlite:kidsplanner.db}
+   * @param kind kid or activity repository
+   */
   public SqliteRepository(String jdbcUrl, EntityKind kind) {
     this.jdbcUrl = jdbcUrl;
     this.kind = kind;

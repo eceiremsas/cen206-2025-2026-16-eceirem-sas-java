@@ -29,22 +29,30 @@ public final class RepositoryFactory {
     return "kidsplanner";
   }
 
+  /** @return active {@link StorageType} for new repositories */
   public static StorageType getActiveStorage() {
     return activeStorage;
   }
 
+  /** @param storageType backend to use until changed */
   public static void setActiveStorage(StorageType storageType) {
     synchronized (LOCK) {
       activeStorage = storageType;
     }
   }
 
+  /** @param jdbcUrl SQLite JDBC URL when {@link StorageType#SQLITE} is active */
   public static void configureSqliteUrl(String jdbcUrl) {
     synchronized (LOCK) {
       sqliteJdbcUrl = jdbcUrl;
     }
   }
 
+  /**
+   * @param jdbcUrl MySQL URL including database
+   * @param user DB user
+   * @param password DB password
+   */
   public static void configureMysql(String jdbcUrl, String user, String password) {
     synchronized (LOCK) {
       mysqlJdbcUrl = jdbcUrl;
@@ -53,6 +61,7 @@ public final class RepositoryFactory {
     }
   }
 
+  /** @return {@link Kid} repository for current {@link StorageType} */
   public static IRepository<Kid> createKidRepository() {
     switch (activeStorage) {
       case BINARY:
@@ -65,6 +74,7 @@ public final class RepositoryFactory {
     throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
   }
 
+  /** @return {@link Activity} repository for current {@link StorageType} */
   public static IRepository<Activity> createActivityRepository() {
     switch (activeStorage) {
       case BINARY:
@@ -77,6 +87,10 @@ public final class RepositoryFactory {
     throw new RepositoryException("Desteklenmeyen depolama turu: " + activeStorage);
   }
 
+  /**
+   * @param text e.g. {@code BINARY}, {@code SQLITE}, {@code MYSQL}
+   * @return enum or {@code null}
+   */
   public static StorageType parseStorageTypeOrNull(String text) {
     if (text == null) {
       return null;
@@ -92,6 +106,7 @@ public final class RepositoryFactory {
     }
   }
 
+  /** @return JDBC URLs for diagnostics */
   public static String describeJdbcTargets() {
     return "SQLite URL: " + sqliteJdbcUrl + System.lineSeparator()
         + "MySQL URL : " + mysqlJdbcUrl + " (user=" + mysqlUser + ")";
