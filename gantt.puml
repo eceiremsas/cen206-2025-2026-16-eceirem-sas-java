@@ -1,0 +1,20 @@
+@startuml
+title Sprint 1 (Midterm) - Gantt (High Level)
+
+project starts 2026-03-20
+
+[Console UI + Text Mode] lasts 2 days
+[Domain Model (Kid/Activity)] lasts 1 day
+[Repositories (Binary/SQLite/MySQL)] lasts 2 days
+[Validation + Overlap rules] lasts 1 day
+[JUnit tests + coverage] lasts 2 days
+[Docs (Doxygen + diagrams)] lasts 2 days
+
+[Domain Model (Kid/Activity)] starts at [Console UI + Text Mode]'s end
+[Repositories (Binary/SQLite/MySQL)] starts at [Domain Model (Kid/Activity)]'s end
+[Validation + Overlap rules] starts at [Repositories (Binary/SQLite/MySQL)]'s end
+[JUnit tests + coverage] starts at [Validation + Overlap rules]'s end
+[Docs (Doxygen + diagrams)] starts at [JUnit tests + coverage]'s end
+
+@enduml
+

@@ -1,0 +1,20 @@
+@startuml
+title Sequence - Add Activity (Text Mode)
+
+actor User
+participant "Kidsplanner" as KP
+participant "RepositoryFactory" as RF
+participant "IRepository<Activity>" as AR
+
+User -> KP : run() / command "add"
+KP -> RF : createActivityRepository()
+RF --> KP : AR
+
+KP -> KP : readActivityFields()
+KP -> KP : validateActivity()
+KP -> AR : save(activity)
+AR --> KP : (id assigned)
+KP --> User : "Aktivite eklendi. ID = ..."
+
+@enduml
+

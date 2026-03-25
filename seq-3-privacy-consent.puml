@@ -1,0 +1,28 @@
+@startuml
+title Sequence - Privacy Consent (First Run)
+
+actor User
+participant "Kidsplanner" as KP
+participant "PrivacyConsent" as PC
+participant "ConsoleUi" as UI
+
+User -> KP : run()
+KP -> PC : ensureInteractiveConsent(...)
+
+alt consent flag exists
+  PC --> KP : return
+else menu mode
+  PC -> UI : readMenuChoice(...)
+  UI --> PC : choice
+  alt choice == YES
+    PC -> PC : writeConsentFlag()
+    PC --> KP : return
+  else choice == NO
+    PC --> KP : throw RepositoryException
+  end
+else text mode
+  PC --> KP : prints info only
+end
+
+@enduml
+
