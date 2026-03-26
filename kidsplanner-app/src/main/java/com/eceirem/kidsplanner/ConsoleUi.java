@@ -51,13 +51,21 @@ public final class ConsoleUi {
    * ASCII box drawing for maximum compatibility (some Windows consoles render Unicode line-art as {@code ?}).
    */
   private static final String HLINE = "-";
+  /** Vertical border character for tables/boxes. */
   private static final String VLINE = "|";
+  /** Top-left corner character for tables/boxes. */
   private static final String TLC = "+";
+  /** Top-right corner character for tables/boxes. */
   private static final String TRC = "+";
+  /** Bottom-left corner character for tables/boxes. */
   private static final String BLC = "+";
+  /** Bottom-right corner character for tables/boxes. */
   private static final String BRC = "+";
+  /** Left tee junction character for tables/boxes. */
   private static final String TEE_L = "+";
+  /** Right tee junction character for tables/boxes. */
   private static final String TEE_R = "+";
+  /** Crossing junction character for tables/boxes. */
   private static final String CROSS = "+";
   /** Time formatting for tables. */
   private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT);
