@@ -68,6 +68,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /** Creates the backing tables when missing (idempotent). */
   private void ensureTables() throws SQLException {
     try (Connection connection = connect(); Statement statement = connection.createStatement()) {
       statement.executeUpdate(
@@ -119,6 +120,12 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     }
   }
 
+  /**
+   * Parses the database name from a JDBC URL.
+   *
+   * @param url JDBC URL (e.g. {@code jdbc:mysql://host:3306/db?x=y})
+   * @return database name or {@code null} if it cannot be determined
+   */
   private static String parseDatabaseName(String url) {
     // Expected: jdbc:mysql://host:port/dbname?params...
     int scheme = url.indexOf("://");
@@ -134,6 +141,12 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     return db.trim().isEmpty() ? null : db.trim();
   }
 
+  /**
+   * Removes the database segment from a MySQL JDBC URL while keeping the query string.
+   *
+   * @param url JDBC URL (e.g. {@code jdbc:mysql://host:3306/db?x=y})
+   * @return server-level JDBC URL (e.g. {@code jdbc:mysql://host:3306/?x=y})
+   */
   private static String stripDatabaseFromJdbcUrl(String url) {
     // Convert jdbc:mysql://host:port/db?x=y -> jdbc:mysql://host:port/?x=y
     int scheme = url.indexOf("://");
@@ -149,6 +162,12 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
     return url.substring(0, firstSlash + 1) + params;
   }
 
+  /**
+   * Converts a low-level SQL exception into an actionable error message (Docker/MySQL hints).
+   *
+   * @param e SQL exception from schema creation / connection attempt
+   * @return user-friendly message
+   */
   private String buildFriendlySchemaError(SQLException e) {
     // 08xxx: connection issues
     String state = e.getSQLState();

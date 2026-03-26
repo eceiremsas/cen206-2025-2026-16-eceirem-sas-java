@@ -1,3 +1,16 @@
+/**
+@file doxygen-main.md
+@brief Doxygen main page source (Markdown).
+*/
+
+/**
+@page mainpage Kids Activity Planner
+
+Console application for planning children’s activities: domain model (kid, activity,
+privacy consent), three interchangeable storage backends (binary file, SQLite, MySQL via
+Docker), and keyboard-driven console UI.
+*/
+
 # Kids Activity Planner
 
 Console application for planning children’s activities: domain model (kid, activity,
