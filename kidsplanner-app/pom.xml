@@ -180,7 +180,7 @@
 						<exclude>com/eceirem/kidsplanner/ConsoleUi*</exclude>
 						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
 						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
-						<exclude>com/eceirem/kidsplanner/MysqlRepository*</exclude>
+						<exclude>com/eceirem/kidsplanner/MySqlRepository*</exclude>
 						<!-- Exclude factory/repo I/O glue from unit coverage -->
 						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
 						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>

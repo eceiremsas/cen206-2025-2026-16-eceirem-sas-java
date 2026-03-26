@@ -60,7 +60,7 @@ Planning activities for multiple children becomes error-prone when schedules ove
 
 - `BinaryRepository<T>`: file-based serialization.
 - `SqliteRepository<T>`: JDBC-based local database.
-- `MysqlRepository<T>`: JDBC + Docker Compose MySQL.
+- `MySqlRepository<T>`: JDBC + Docker Compose MySQL.
 
 ---
 

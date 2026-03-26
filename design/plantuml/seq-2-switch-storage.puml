@@ -5,7 +5,7 @@ actor User
 participant "Kidsplanner" as KP
 participant "RepositoryFactory" as RF
 participant "SqliteRepository" as SR
-participant "MysqlRepository" as MR
+participant "MySqlRepository" as MR
 
 User -> KP : choose storage (binary/sqlite/mysql)
 KP -> RF : setActiveStorage(type)
@@ -17,7 +17,7 @@ alt type == SQLITE
   SR --> RF : repo
 else type == MYSQL
   KP -> RF : createKidRepository()
-  RF -> MR : new MysqlRepository(...)
+  RF -> MR : new MySqlRepository(...)
   MR --> RF : repo / throws if DB down
 else type == BINARY
   KP -> RF : createKidRepository()

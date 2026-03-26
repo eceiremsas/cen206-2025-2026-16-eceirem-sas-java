@@ -64,7 +64,7 @@ package "com.eceirem.kidsplanner" {
   }
 
   class SqliteRepository<T>
-  class MysqlRepository<T>
+  class MySqlRepository<T>
   class Kidsplanner
   class ConsoleUi
   class PrivacyConsent
@@ -77,12 +77,12 @@ Activity ..|> HasId
 
 BinaryRepository ..|> IRepository
 SqliteRepository ..|> IRepository
-MysqlRepository ..|> IRepository
+MySqlRepository ..|> IRepository
 
 RepositoryFactory ..> IRepository : creates
 RepositoryFactory ..> BinaryRepository
 RepositoryFactory ..> SqliteRepository
-RepositoryFactory ..> MysqlRepository
+RepositoryFactory ..> MySqlRepository
 
 Kidsplanner ..> RepositoryFactory
 Kidsplanner ..> ConsoleUi
