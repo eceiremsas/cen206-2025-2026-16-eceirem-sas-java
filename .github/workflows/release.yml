@@ -51,10 +51,6 @@ jobs:
         run: sudo apt-get install -y texlive-xetex texlive-latex-recommended texlive-latex-extra
         shell: bash
           
-      - name: Install LCOV
-        run: sudo apt-get install lcov
-        shell: bash
-        
       - name: Install coverxygen
         run: pip3 install coverxygen
         shell: bash
@@ -121,8 +117,10 @@ jobs:
             mkdir -p $currentDir/kidsplanner-app/target/site/coverxygen
             python -m coverxygen --xml-dir $currentDir/kidsplanner-app/target/site/doxygen/xml --src-dir $currentDir --format lcov --output $currentDir/kidsplanner-app/target/site/coverxygen/lcov.info --prefix $currentDir/kidsplanner-app/
         
-      - name: Run genhtml
-        run: genhtml ./kidsplanner-app/target/site/coverxygen/lcov.info --legend --title "Documentation Coverage Report" -o kidsplanner-app/target/site/coverxygen
+      - name: Documentation coverage HTML (ReportGenerator)
+        run: |
+          reportgenerator "-reports:kidsplanner-app/target/site/coverxygen/lcov.info" "-targetdir:kidsplanner-app/target/site/coverxygen" "-reporttypes:Html" "-title:Documentation Coverage Report"
+        shell: bash
 
       - name: Copy Folders
         run: |
@@ -137,7 +135,7 @@ jobs:
         shell: bash
 
       - name: Perform Maven site generation
-        run: mvn site
+        run: mvn site -Ddoc.coverage.skip=true
         working-directory: ./kidsplanner-app
 
       #- name: Archive Coverage Report

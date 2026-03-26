@@ -1,0 +1,29 @@
+/**
+ * @file namespaces.dox
+ * @brief Namespace documentation for Doxygen/Coverxygen.
+ *
+ * Coverxygen counts namespace-level documentation as part of documentation coverage.
+ * Java projects normally use packages, but Doxygen still emits namespaces for internal
+ * groupings (e.g. {@code com}, {@code com::eceirem}). Document them once here.
+ */
+
+/** @namespace com
+ *  @brief Root namespace for the project packages.
+ */
+
+/** @namespace com::eceirem
+ *  @brief Organization namespace used by the Kidsplanner packages.
+ */
+
+/** @namespace com::eceirem::kidsplanner
+ *  @brief Main application package containing domain, UI, and repositories.
+ */
+
+/** @namespace java::lang
+ *  @brief Java standard library namespace used in generated output.
+ */
+
+/** @namespace java
+ *  @brief Root namespace for generated Java standard library namespaces.
+ */
+
