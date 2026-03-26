@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Activity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">kidsplanner-app</a> &gt; <a href="index.source.html" class="el_package">com.eceirem.kidsplanner</a> &gt; <span class="el_source">Activity.java</span></div><h1>Activity.java</h1><pre class="source lang-java linenums">/**
+
+@file Activity.java
+@brief Scheduled activity entity (one child, one day, overlap rules).
+@details Maps to kid-linked rows; overlap rules enforced in {@link Kidsplanner}.
+*/
+
+/**
+
+@package com.eceirem.kidsplanner
+@brief Domain package for {@link Activity} and related types.
+*/
+package com.eceirem.kidsplanner;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+/**
+ * Scheduled activity for a specific child (kidId). Overlap rules apply per kid and date.
+ */
+public class Activity implements HasId&lt;Integer&gt; {
+  /** Serialization version. */
+  private static final long serialVersionUID = 2L;
+
+  /** Primary key; null before persistence. */
+  private Integer id;
+  /** Owning child id. */
+  private Integer kidId;
+  /** Short title shown in lists. */
+  private String title;
+  /** Calendar date of the activity. */
+  private LocalDate date;
+  /** Start time of day. */
+  private LocalTime startTime;
+  /** End time of day. */
+  private LocalTime endTime;
+  /** Category (persisted as string in SQL backends). */
+  private ActivityType type;
+  /** Optional place. */
+  private String location;
+  /** Optional free text. */
+  private String notes;
+
+  /** No-arg constructor for serialization. */
+<span class="fc" id="L45">  public Activity() {</span>
+<span class="fc" id="L46">  }</span>
+
+  /**
+   * Delegates to {@link #Activity(String, LocalDate, LocalTime, LocalTime, ActivityType, String, String, Integer)}
+   * with {@code kidId == null}.
+   */
+  public Activity(String title, LocalDate date, LocalTime startTime, LocalTime endTime, ActivityType type, String location,
+      String notes) {
+<span class="fc" id="L54">    this(title, date, startTime, endTime, type, location, notes, null);</span>
+<span class="fc" id="L55">  }</span>
+
+  /**
+   * @param title activity title
+   * @param date calendar date
+   * @param startTime start time of day
+   * @param endTime end time of day
+   * @param type {@link ActivityType}
+   * @param location optional
+   * @param notes optional
+   * @param kidId owning child id; may be {@code null} until linked
+   */
+  public Activity(String title, LocalDate date, LocalTime startTime, LocalTime endTime, ActivityType type, String location,
+<span class="fc" id="L68">      String notes, Integer kidId) {</span>
+<span class="fc" id="L69">    this.title = title;</span>
+<span class="fc" id="L70">    this.date = date;</span>
+<span class="fc" id="L71">    this.startTime = startTime;</span>
+<span class="fc" id="L72">    this.endTime = endTime;</span>
+<span class="fc" id="L73">    this.type = type;</span>
+<span class="fc" id="L74">    this.location = location;</span>
+<span class="fc" id="L75">    this.notes = notes;</span>
+<span class="fc" id="L76">    this.kidId = kidId;</span>
+<span class="fc" id="L77">  }</span>
+
+  /** @return id or {@code null} before first save */
+  @Override public Integer getId() {
+<span class="fc" id="L81">    return id;</span>
+  }
+
+  /** @param id key from persistence */
+  @Override public void setId(Integer id) {
+<span class="fc" id="L86">    this.id = id;</span>
+<span class="fc" id="L87">  }</span>
+
+  /** @return owning child id */
+  public Integer getKidId() {
+<span class="fc" id="L91">    return kidId;</span>
+  }
+
+  /** @param kidId owning child id */
+  public void setKidId(Integer kidId) {
+<span class="fc" id="L96">    this.kidId = kidId;</span>
+<span class="fc" id="L97">  }</span>
+
+  /** @return title */
+  public String getTitle() {
+<span class="fc" id="L101">    return title;</span>
+  }
+
+  /** @param title activity title */
+  public void setTitle(String title) {
+<span class="fc" id="L106">    this.title = title;</span>
+<span class="fc" id="L107">  }</span>
+
+  /** @return activity date */
+  public LocalDate getDate() {
+<span class="fc" id="L111">    return date;</span>
+  }
+
+  /** @param date calendar date */
+  public void setDate(LocalDate date) {
+<span class="fc" id="L116">    this.date = date;</span>
+<span class="fc" id="L117">  }</span>
+
+  /** @return start time */
+  public LocalTime getStartTime() {
+<span class="fc" id="L121">    return startTime;</span>
+  }
+
+  /** @param startTime start time of day */
+  public void setStartTime(LocalTime startTime) {
+<span class="fc" id="L126">    this.startTime = startTime;</span>
+<span class="fc" id="L127">  }</span>
+
+  /** @return end time */
+  public LocalTime getEndTime() {
+<span class="fc" id="L131">    return endTime;</span>
+  }
+
+  /** @param endTime end time of day */
+  public void setEndTime(LocalTime endTime) {
+<span class="fc" id="L136">    this.endTime = endTime;</span>
+<span class="fc" id="L137">  }</span>
+
+  /** @return activity type */
+  public ActivityType getType() {
+<span class="fc" id="L141">    return type;</span>
+  }
+
+  /** @param type category */
+  public void setType(ActivityType type) {
+<span class="fc" id="L146">    this.type = type;</span>
+<span class="fc" id="L147">  }</span>
+
+  /** @return location or null */
+  public String getLocation() {
+<span class="fc" id="L151">    return location;</span>
+  }
+
+  /** @param location optional place */
+  public void setLocation(String location) {
+<span class="fc" id="L156">    this.location = location;</span>
+<span class="fc" id="L157">  }</span>
+
+  /** @return notes or null */
+  public String getNotes() {
+<span class="fc" id="L161">    return notes;</span>
+  }
+
+  /** @param notes optional text */
+  public void setNotes(String notes) {
+<span class="fc" id="L166">    this.notes = notes;</span>
+<span class="fc" id="L167">  }</span>
+
+  /** @return compact debug representation */
+  @Override
+  public String toString() {
+<span class="fc" id="L172">    return &quot;Activity{id=&quot; + id + &quot;, kidId=&quot; + kidId + &quot;, title='&quot; + title + &quot;', date=&quot; + date + &quot;, start=&quot; + startTime</span>
+        + &quot;, end=&quot; + endTime + &quot;, type=&quot; + type + &quot;, location='&quot; + location + &quot;'}&quot;;
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

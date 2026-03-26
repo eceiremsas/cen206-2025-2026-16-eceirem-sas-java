@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrivacyConsent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">kidsplanner-app</a> &gt; <a href="index.source.html" class="el_package">com.eceirem.kidsplanner</a> &gt; <span class="el_source">PrivacyConsent.java</span></div><h1>PrivacyConsent.java</h1><pre class="source lang-java linenums">/**
+ * @file PrivacyConsent.java
+ * @brief Interactive KVKK/GDPR-style consent gate.
+ */
+package com.eceirem.kidsplanner;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import org.jline.terminal.Terminal;
+
+/**
+ * Minimal consent capture aligned with KVKK/GDPR data-minimization narrative for the planner.
+ */
+public final class PrivacyConsent {
+
+  /** Local flag file path indicating the user accepted processing. */
+  private static final String FLAG = &quot;kidsplanner-consent.flag&quot;;
+
+  /** Prevents instantiation. */
+  private PrivacyConsent() {
+  }
+
+  /** @return {@code true} if the consent flag file exists */
+  public static boolean hasConsentFlag() {
+<span class="fc" id="L30">    return Files.exists(Paths.get(FLAG));</span>
+  }
+
+  /** Creates the on-disk consent flag after successful approval. */
+  public static void writeConsentFlag() {
+    try {
+<span class="fc" id="L36">      Path path = Paths.get(FLAG);</span>
+<span class="fc" id="L37">      Files.write(path, &quot;consent-granted&quot;.getBytes(java.nio.charset.StandardCharsets.UTF_8));</span>
+<span class="fc" id="L38">    } catch (IOException e) {</span>
+<span class="fc" id="L39">      throw new RepositoryException(&quot;Could not write consent flag file.&quot;, e);</span>
+<span class="fc" id="L40">    }</span>
+<span class="fc" id="L41">  }</span>
+
+  /**
+   * @param menuStdin same stream used for {@link ConsoleUi} menus (e.g. wrapped {@code System.in}); ignored in text mode
+   * @param menuMode {@code true} when running with interactive menu UI
+   */
+  public static void ensureInteractiveConsent(InputStream menuStdin, boolean menuMode) throws IOException {
+<span class="fc" id="L48">    ensureInteractiveConsent(null, menuStdin, menuMode);</span>
+<span class="fc" id="L49">  }</span>
+
+  /**
+   * Shows consent UI once until flag file exists.
+   *
+   * @param terminal JLine terminal if available; may be {@code null}
+   * @param menuStdin stdin shared with {@link ConsoleUi} in menu mode
+   * @param menuMode {@code true} for full-screen menus
+   * @throws IOException on I/O errors
+   */
+  public static void ensureInteractiveConsent(Terminal terminal, InputStream menuStdin, boolean menuMode) throws IOException {
+<span class="fc bfc" id="L60" title="All 2 branches covered.">    if (hasConsentFlag()) {</span>
+<span class="fc" id="L61">      return;</span>
+    }
+<span class="fc bfc" id="L63" title="All 2 branches covered.">    if (menuMode) {</span>
+<span class="fc" id="L64">      List&lt;String&gt; choices = Arrays.asList(</span>
+          &quot;YES - I consent to processing minimal data for planning&quot;,
+          &quot;NO - exit the application&quot;);
+<span class="fc" id="L67">      ConsoleUi.clearScreen(System.out);</span>
+<span class="fc" id="L68">      ConsoleUi.printBanner(System.out);</span>
+<span class="fc" id="L69">      ConsoleUi.muted(System.out,</span>
+          &quot;This app stores only minimal child profile and activity data for planning.&quot;);
+<span class="fc" id="L71">      ConsoleUi.muted(System.out, &quot;KVKK/GDPR: purpose limitation, data minimization; no unnecessary fields.&quot;);</span>
+<span class="fc" id="L72">      ConsoleUi.muted(System.out, &quot;Use arrows / Tab / Enter to choose; no numeric menu (course rule).&quot;);</span>
+<span class="fc" id="L73">      int idx = ConsoleUi.readMenuChoice(terminal, menuStdin, System.out, &quot;Privacy / personal data&quot;, choices,</span>
+          &quot;Your choice constitutes legal consent.&quot;);
+<span class="fc bfc" id="L75" title="All 2 branches covered.">      if (idx != 0) {</span>
+<span class="fc" id="L76">        System.out.println(&quot;Consent not given. Closing application.&quot;);</span>
+<span class="fc" id="L77">        throw new RepositoryException(&quot;Consent not given.&quot;);</span>
+      }
+<span class="fc" id="L79">      writeConsentFlag();</span>
+<span class="fc" id="L80">      return;</span>
+    }
+<span class="fc" id="L82">    System.out.println(&quot;[Info] Text mode: privacy summary — planning data only; minimization applies.&quot;);</span>
+<span class="fc" id="L83">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
