@@ -113,6 +113,18 @@
 			<version>5.10.2</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>1.20.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mysql</artifactId>
+			<version>1.20.6</version>
+			<scope>test</scope>
+		</dependency>
 		<!-- SLF4J API -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -172,18 +184,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.7</version>
-				<configuration>
-					<excludes>
-						<!-- Exclude interactive controller/UI and DB integration from unit coverage. -->
-						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
-						<!-- Exclude persistence backends/factory (I/O heavy) from unit coverage. -->
-						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
-						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>
-						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
-						<exclude>com/eceirem/kidsplanner/MySqlRepository*</exclude>
-					</excludes>
-				</configuration>
+				<version>0.8.12</version>
 				<executions>
 					<execution>
 						<goals>
