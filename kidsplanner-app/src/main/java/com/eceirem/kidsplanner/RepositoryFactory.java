@@ -83,7 +83,7 @@ public final class RepositoryFactory {
       case SQLITE:
         return new SqliteRepository<Kid>(sqliteJdbcUrl, SqliteRepository.EntityKind.KID);
       case MYSQL:
-        return new MysqlRepository<Kid>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MysqlRepository.EntityKind.KID);
+        return new MySqlRepository<Kid>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MySqlRepository.EntityKind.KID);
     }
     throw new RepositoryException("Unsupported storage type: " + activeStorage);
   }
@@ -96,7 +96,7 @@ public final class RepositoryFactory {
       case SQLITE:
         return new SqliteRepository<Activity>(sqliteJdbcUrl, SqliteRepository.EntityKind.ACTIVITY);
       case MYSQL:
-        return new MysqlRepository<Activity>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MysqlRepository.EntityKind.ACTIVITY);
+        return new MySqlRepository<Activity>(mysqlJdbcUrl, mysqlUser, mysqlPassword, MySqlRepository.EntityKind.ACTIVITY);
     }
     throw new RepositoryException("Unsupported storage type: " + activeStorage);
   }

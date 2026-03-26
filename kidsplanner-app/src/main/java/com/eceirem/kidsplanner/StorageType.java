@@ -12,6 +12,6 @@ public enum StorageType {
   BINARY,
   /** {@link SqliteRepository} */
   SQLITE,
-  /** {@link MysqlRepository} */
+  /** {@link MySqlRepository} */
   MYSQL
 }
