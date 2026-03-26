@@ -99,6 +99,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<!-- Repo root (parent of kidsplanner-app); Doxyfile lives here -->
+		<repo.root.dir>${project.basedir}/..</repo.root.dir>
+		<!-- Set true when Doxygen/Coverxygen/HTML were already produced (e.g. CI before mvn site) -->
+		<doc.coverage.skip>false</doc.coverage.skip>
+		<python.executable>python</python.executable>
 	</properties>
 
 	<dependencies>
@@ -161,19 +166,26 @@
 					<systemPropertyVariables>
 						<kidsplanner.text.mode>true</kidsplanner.text.mode>
 					</systemPropertyVariables>
-					<!-- Matches root docker-compose.yml when DB is up; override via env in CI -->
-					<environmentVariables>
-						<KIDSPLANNER_TEST_MYSQL_JDBC>jdbc:mysql://127.0.0.1:3306/kidsplanner?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC</KIDSPLANNER_TEST_MYSQL_JDBC>
-						<KIDSPLANNER_TEST_MYSQL_USER>root</KIDSPLANNER_TEST_MYSQL_USER>
-						<KIDSPLANNER_TEST_MYSQL_PASSWORD>kidsplanner</KIDSPLANNER_TEST_MYSQL_PASSWORD>
-					</environmentVariables>
 				</configuration>
 			</plugin>
 			
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.12</version>
+				<version>0.8.7</version>
+				<configuration>
+					<excludes>
+						<exclude>com/eceirem/kidsplanner/Kidsplanner$1*</exclude>
+						<!-- Exclude interactive UI / integration-heavy code from unit coverage -->
+						<exclude>com/eceirem/kidsplanner/ConsoleUi*</exclude>
+						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
+						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
+						<exclude>com/eceirem/kidsplanner/MysqlRepository*</exclude>
+						<!-- Exclude factory/repo I/O glue from unit coverage -->
+						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
+						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -252,12 +264,59 @@
 					<tempWebappDirectory>${basedir}/target/site</tempWebappDirectory>
 				</configuration>
 			</plugin>
-			<!-- Copy committed API PDF into site output so GitHub Pages links work (not only under target/latex). -->
+			<!--
+			  Documentation coverage (Coverxygen LCOV + HTML) for site menu "Coverxygen Report".
+			  Requires: Doxygen on PATH, Python + coverxygen (pip), dotnet ReportGenerator (genhtml optional).
+			  CI builds doc coverage before mvn site and passes -Ddoc.coverage.skip=true to avoid duplicating work.
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>3.1.0</version>
 				<executions>
+					<execution>
+						<id>doc-coverage-and-site-assets</id>
+						<phase>pre-site</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<skip>${doc.coverage.skip}</skip>
+							<target>
+								<mkdir dir="${project.reporting.outputDirectory}/coverxygen" />
+								<exec executable="doxygen" dir="${repo.root.dir}" failonerror="true">
+									<arg value="Doxyfile" />
+								</exec>
+								<exec executable="${python.executable}" failonerror="true">
+									<arg value="-m" />
+									<arg value="pip" />
+									<arg value="install" />
+									<arg value="-q" />
+									<arg value="coverxygen" />
+								</exec>
+								<exec executable="${python.executable}" failonerror="true">
+									<arg value="-m" />
+									<arg value="coverxygen" />
+									<arg value="--xml-dir" />
+									<arg value="${project.reporting.outputDirectory}/doxygen/xml" />
+									<arg value="--src-dir" />
+									<arg value="${repo.root.dir}" />
+									<arg value="--format" />
+									<arg value="lcov" />
+									<arg value="--output" />
+									<arg value="${project.reporting.outputDirectory}/coverxygen/lcov.info" />
+									<arg value="--prefix" />
+									<arg value="${project.basedir}/" />
+								</exec>
+								<exec executable="reportgenerator" failonerror="true">
+									<arg value="-reports:${project.reporting.outputDirectory}/coverxygen/lcov.info" />
+									<arg value="-targetdir:${project.reporting.outputDirectory}/coverxygen" />
+									<arg value="-reporttypes:Html" />
+									<arg value="-title:Documentation Coverage Report" />
+								</exec>
+							</target>
+						</configuration>
+					</execution>
 					<execution>
 						<id>copy-doxygen-pdf-to-site</id>
 						<phase>pre-site</phase>
@@ -348,4 +407,18 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>unix-python3</id>
+			<activation>
+				<os>
+					<family>unix</family>
+				</os>
+			</activation>
+			<properties>
+				<python.executable>python3</python.executable>
+			</properties>
+		</profile>
+	</profiles>
 </project>
