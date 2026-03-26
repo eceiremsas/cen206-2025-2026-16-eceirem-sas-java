@@ -1,0 +1,8 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+kidsplanner-app,com.eceirem.kidsplanner,PrivacyConsent,0,89,0,6,0,26,0,7,0,4
+kidsplanner-app,com.eceirem.kidsplanner,ValidationException,0,4,0,0,0,2,0,1,0,1
+kidsplanner-app,com.eceirem.kidsplanner,Kid,0,65,0,0,0,20,0,11,0,11
+kidsplanner-app,com.eceirem.kidsplanner,ActivityType,0,64,0,0,0,7,0,1,0,1
+kidsplanner-app,com.eceirem.kidsplanner,RepositoryException,0,9,0,0,0,4,0,2,0,2
+kidsplanner-app,com.eceirem.kidsplanner,Activity,0,151,0,0,0,42,0,22,0,22
+kidsplanner-app,com.eceirem.kidsplanner,StorageType,0,34,0,0,0,4,0,1,0,1
