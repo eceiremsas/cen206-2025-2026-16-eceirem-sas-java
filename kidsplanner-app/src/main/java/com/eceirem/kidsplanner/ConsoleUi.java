@@ -331,22 +331,19 @@ public final class ConsoleUi {
         }
         continue;
       }
+      // 8-bit CSI (single byte control sequence introducer)
+      if (read == 0x9B) {
+        int nav = readCsiNavigation(in);
+        if (nav != NAV_NONE) {
+          index = applyNav(nav, index, options.size());
+        }
+        continue;
+      }
       if (read >= 0x80) {
         if (in instanceof PushbackInputStream) {
           ((PushbackInputStream) in).unread(read);
         }
         readUtf8Byte(in, buffer);
-        continue;
-      }
-      // 8-bit CSI (single byte control sequence introducer)
-      if (read == 0x9B) {
-        int nav = readCsiNavigation(in);
-        if (nav == NAV_QUIT) {
-          return options.size() - 1;
-        }
-        if (nav != NAV_NONE) {
-          index = applyNav(nav, index, options.size());
-        }
         continue;
       }
       if (read == 27) {
@@ -726,9 +723,6 @@ public final class ConsoleUi {
       bytes[i] = (byte) next;
     }
     String decoded = new String(bytes, StandardCharsets.UTF_8);
-    if (decoded.isEmpty()) {
-      return first;
-    }
     return decoded.charAt(0);
   }
 }

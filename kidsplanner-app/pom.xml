@@ -175,15 +175,13 @@
 				<version>0.8.7</version>
 				<configuration>
 					<excludes>
-						<exclude>com/eceirem/kidsplanner/Kidsplanner$1*</exclude>
-						<!-- Exclude interactive UI / integration-heavy code from unit coverage -->
-						<exclude>com/eceirem/kidsplanner/ConsoleUi*</exclude>
+						<!-- Exclude interactive controller/UI and DB integration from unit coverage. -->
 						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
-						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
-						<exclude>com/eceirem/kidsplanner/MySqlRepository*</exclude>
-						<!-- Exclude factory/repo I/O glue from unit coverage -->
+						<!-- Exclude persistence backends/factory (I/O heavy) from unit coverage. -->
 						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
 						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>
+						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
+						<exclude>com/eceirem/kidsplanner/MySqlRepository*</exclude>
 					</excludes>
 				</configuration>
 				<executions>
