@@ -10,6 +10,8 @@ This folder contains non-code deliverables required by the CEN206 midterm guide.
 - Deployment diagram source: `design/drawio/deployment.drawio`
 - ProjectLibre plan: `design/projectlibre/project.xml`
 - Figma exports: `design/figma/`
+  - Figma design file: [Kids Activity Planner (Figma)](https://www.figma.com/design/xyGwKBPQd20XFf0CkTvYSa/Untitled?node-id=0-1&t=9lNvjFMNXORTH9G0-1)
+  - Figma prototype: [Kids Activity Planner (Prototype)](https://www.figma.com/proto/xyGwKBPQd20XFf0CkTvYSa/Untitled?node-id=0-1&t=9lNvjFMNXORTH9G0-1)
 
 ## Exports to generate (manual)
 

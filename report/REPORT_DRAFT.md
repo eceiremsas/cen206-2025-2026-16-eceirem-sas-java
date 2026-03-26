@@ -159,6 +159,8 @@ All design artifacts are stored under `design/`.
 ### 8.4 Figma
 
 - Console wireframes PDF: `design/figma/console-wireframes.pdf`
+- Figma design file: [Kids Activity Planner (Figma)](https://www.figma.com/design/xyGwKBPQd20XFf0CkTvYSa/Untitled?node-id=0-1&t=9lNvjFMNXORTH9G0-1)
+- Figma prototype: [Kids Activity Planner (Prototype)](https://www.figma.com/proto/xyGwKBPQd20XFf0CkTvYSa/Untitled?node-id=0-1&t=9lNvjFMNXORTH9G0-1)
 
 ### 8.5 draw.io
 
