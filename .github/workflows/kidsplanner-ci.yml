@@ -1,0 +1,29 @@
+name: kidsplanner-app CI
+
+on:
+  push:
+    paths:
+      - "kidsplanner-app/**"
+      - ".github/workflows/kidsplanner-ci.yml"
+  pull_request:
+    paths:
+      - "kidsplanner-app/**"
+      - ".github/workflows/kidsplanner-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Run tests (includes Testcontainers MySQL)
+        working-directory: kidsplanner-app
+        run: mvn -q test
+

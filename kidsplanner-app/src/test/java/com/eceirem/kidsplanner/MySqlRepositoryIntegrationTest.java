@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 /**
  * Real MySQL integration tests.
  *
- * Uses Testcontainers to run a real MySQL instance (no fakes, no skips).
+ * Uses Testcontainers to run a real MySQL instance (no fakes).
  */
 @Testcontainers
 public class MySqlRepositoryIntegrationTest {
@@ -86,6 +86,7 @@ public class MySqlRepositoryIntegrationTest {
   public void updateThrowsWhenMissingIdOrNotFound() {
     MySqlRepository<Kid> kidRepo =
         new MySqlRepository<Kid>(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword(), MySqlRepository.EntityKind.KID);
+
     Kid missingId = new Kid("X", null, null);
     assertThrows(RepositoryException.class, () -> kidRepo.update(missingId));
 

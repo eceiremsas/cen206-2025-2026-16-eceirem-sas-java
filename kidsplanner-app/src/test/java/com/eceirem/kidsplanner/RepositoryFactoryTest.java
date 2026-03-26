@@ -24,7 +24,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @Testcontainers
 public class RepositoryFactoryTest {
-
   @Container
   private static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0")
       .withDatabaseName("kidsplanner")
