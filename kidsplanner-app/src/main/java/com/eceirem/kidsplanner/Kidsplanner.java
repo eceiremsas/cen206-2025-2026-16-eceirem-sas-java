@@ -39,6 +39,12 @@ import org.jline.terminal.TerminalBuilder;
 */
 public class Kidsplanner {
 
+  /** System property to disable JLine terminal usage (use fallback menu input). */
+  public static final String PROP_DISABLE_JLINE = "kidsplanner.jline.disable";
+
+  /** System property to force menu mode even when System.console() is null (useful for deterministic tests). */
+  public static final String PROP_FORCE_MENU = "kidsplanner.menu.force";
+
   /**
    * Interactive menus when a real console is expected. {@code java -jar} from Windows {@code .bat}
    * often yields {@code System.console() == null} even though the user has a console; on Windows we
@@ -69,6 +75,9 @@ public class Kidsplanner {
     if ("true".equals(System.getProperty(PROP_TEXT_MODE))) {
       return false;
     }
+    if ("true".equals(System.getProperty(PROP_FORCE_MENU))) {
+      return true;
+    }
     if (System.console() != null) {
       return true;
     }
@@ -83,10 +92,12 @@ public class Kidsplanner {
       this.menuStdin = new PushbackInputStream(System.in, 64);
       this.scanner = null;
       Terminal t = null;
-      try {
-        t = TerminalBuilder.builder().system(true).jna(true).build();
-      } catch (Exception e) {
-        t = null;
+      if (!"true".equals(System.getProperty(PROP_DISABLE_JLINE))) {
+        try {
+          t = TerminalBuilder.builder().system(true).jna(true).build();
+        } catch (Exception e) {
+          t = null;
+        }
       }
       this.terminal = t;
       this.lineReader = t == null ? null : LineReaderBuilder.builder().terminal(t).build();

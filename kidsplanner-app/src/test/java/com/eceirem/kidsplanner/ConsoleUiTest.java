@@ -21,6 +21,10 @@ import org.junit.jupiter.api.Test;
 
 public class ConsoleUiTest {
 
+  private static PrintStream silentOut() throws Exception {
+    return new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8.name());
+  }
+
   @Test
   public void bannerAndHelpersPrintSomething() throws Exception {
     String originalOs = System.getProperty("os.name");
@@ -36,6 +40,26 @@ public class ConsoleUiTest {
       ConsoleUi.clearScreen(out);
       String printed = outBytes.toString(StandardCharsets.UTF_8.name());
       assertTrue(printed.contains("KIDS  PLANNER"));
+    } finally {
+      if (originalOs == null) {
+        System.clearProperty("os.name");
+      } else {
+        System.setProperty("os.name", originalOs);
+      }
+    }
+  }
+
+  @Test
+  public void bannerPrintsWindowsHintOnWindows() throws Exception {
+    String originalOs = System.getProperty("os.name");
+    try {
+      System.setProperty("os.name", "Windows 11");
+      ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
+      PrintStream out = new PrintStream(outBytes, true, StandardCharsets.UTF_8.name());
+      ConsoleUi.printBanner(out);
+      String printed = outBytes.toString(StandardCharsets.UTF_8.name());
+      assertTrue(printed.toLowerCase().contains("windows"));
+      assertTrue(printed.toLowerCase().contains("chcp"));
     } finally {
       if (originalOs == null) {
         System.clearProperty("os.name");
@@ -96,7 +120,7 @@ public class ConsoleUiTest {
   @Test
   public void readMenuChoiceReturnsMinusOneWhenNoOptions() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream(new byte[0]);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "T", Collections.<String>emptyList(), "");
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "T", Collections.<String>emptyList(), "");
     assertEquals(-1, idx);
   }
 
@@ -114,14 +138,14 @@ public class ConsoleUiTest {
   @Test
   public void readMenuChoiceDoesNotPrintStatusWhenEmptyString() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream("\n".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "Exit"), "");
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "Exit"), "");
     assertEquals(0, idx);
   }
 
   @Test
   public void readMenuChoiceCyclesWithTabThenEnter() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream("\t\n".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(1, idx);
   }
 
@@ -129,28 +153,28 @@ public class ConsoleUiTest {
   public void readMenuChoiceMovesWithWSFallback() throws Exception {
     // s = down, Enter selects
     ByteArrayInputStream in = new ByteArrayInputStream("s\n".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(1, idx);
   }
 
   @Test
   public void readMenuChoiceReturnsLastOptionOnQ() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream("q".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 
   @Test
   public void readMenuChoiceReturnsLastOptionOnUppercaseQ() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream("Q".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 
   @Test
   public void readMenuChoiceHandlesCarriageReturnAndPushback() throws Exception {
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream("\rX".getBytes(StandardCharsets.UTF_8)), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
     assertEquals((int) 'X', in.read());
   }
@@ -158,28 +182,28 @@ public class ConsoleUiTest {
   @Test
   public void readMenuChoiceHandlesCarriageReturnAtEof() throws Exception {
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream("\r".getBytes(StandardCharsets.UTF_8)), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
   @Test
   public void readMenuChoiceHandlesCarriageReturnLineEndingCrLf() throws Exception {
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream("\r\n".getBytes(StandardCharsets.UTF_8)), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
   @Test
   public void readMenuChoiceCarriageReturnDoesNotUnreadWhenNotPushback() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream("\rX".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
   @Test
   public void readMenuChoiceMovesWithVimKeysAndWS() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream("jksw\n".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -187,7 +211,7 @@ public class ConsoleUiTest {
   public void readMenuChoiceMovesWithUppercaseVariants() throws Exception {
     // S down, W up, J down, K up, then Enter.
     ByteArrayInputStream in = new ByteArrayInputStream("SWJK\n".getBytes(StandardCharsets.UTF_8));
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -195,14 +219,14 @@ public class ConsoleUiTest {
   public void readMenuChoiceHandlesEightBitCsiPageDown() throws Exception {
     byte[] seq = new byte[] {(byte) 0x9B, '6', '~', '\n'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 16);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "C", "D", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "C", "D", "Exit"), null);
     assertEquals(3, idx);
   }
 
   @Test
   public void readMenuChoiceHandlesScanCodePrefixWithMissingScanByte() throws Exception {
     ByteArrayInputStream in = new ByteArrayInputStream(new byte[] {(byte) 224});
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 
@@ -211,7 +235,7 @@ public class ConsoleUiTest {
     // 0 prefix, scan 80 down, enter => index 1
     byte[] seq = new byte[] {0, 80, '\n'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(1, idx);
   }
 
@@ -220,7 +244,7 @@ public class ConsoleUiTest {
     // 224 prefix, scan 75 => NAV_NONE, then q => last
     byte[] seq = new byte[] {(byte) 224, (byte) 75, 'q'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 16);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 
@@ -229,7 +253,7 @@ public class ConsoleUiTest {
     // 0x9B 9~ is not mapped => NAV_NONE; then Enter selects 0.
     byte[] seq = new byte[] {(byte) 0x9B, '9', '~', '\n'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 16);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -238,7 +262,7 @@ public class ConsoleUiTest {
     // ESC X => NAV_NONE; then Enter selects 0.
     byte[] seq = new byte[] {27, 'X', '\n'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 16);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -246,7 +270,7 @@ public class ConsoleUiTest {
   public void readMenuChoiceWindowsScanUnknownWithNoPushbackFallsBackToEofReturnLast() throws Exception {
     // Not a PushbackInputStream => nav==NAV_NONE => readUtf8Byte hits EOF => returns last.
     ByteArrayInputStream in = new ByteArrayInputStream(new byte[] {(byte) 224, (byte) 1});
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 
@@ -256,7 +280,7 @@ public class ConsoleUiTest {
     // Feed: 224, 1 (unknown scan), then 'q' => should quit to last.
     byte[] seq = new byte[] {(byte) 224, (byte) 1, (byte) 'q'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 16);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 
@@ -270,7 +294,7 @@ public class ConsoleUiTest {
     byte[] seq = new byte[] {(byte) 224, (byte) 80, (byte) 224, (byte) 79, (byte) 224, (byte) 71, (byte) '\n'};
     ByteArrayInputStream raw = new ByteArrayInputStream(seq);
     PushbackInputStream in = new PushbackInputStream(raw, 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "C", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "C", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -286,7 +310,7 @@ public class ConsoleUiTest {
         '\n'
     };
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 32);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "C", "D", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "C", "D", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -295,7 +319,7 @@ public class ConsoleUiTest {
     // ESC O B (down), Enter
     byte[] seq = new byte[] {27, 'O', 'B', '\n'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(1, idx);
   }
 
@@ -304,7 +328,7 @@ public class ConsoleUiTest {
     // "é" is multibyte in UTF-8. Provide it then Enter; it should be ignored and selection stays at 0.
     byte[] seq = "é\n".getBytes(StandardCharsets.UTF_8);
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -312,7 +336,7 @@ public class ConsoleUiTest {
   public void readMenuChoiceIgnoresUtf8MultibyteCharactersWhenNotPushback() throws Exception {
     byte[] seq = "é\n".getBytes(StandardCharsets.UTF_8);
     ByteArrayInputStream in = new ByteArrayInputStream(seq);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -381,7 +405,7 @@ public class ConsoleUiTest {
     // left/right scan codes are mapped to NAV_NONE.
     byte[] seq = new byte[] {(byte) 224, (byte) 75, (byte) 224, (byte) 77, (byte) '\n'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(0, idx);
   }
 
@@ -390,7 +414,7 @@ public class ConsoleUiTest {
     // ESC q should trigger quit (NAV_QUIT)
     byte[] seq = new byte[] {27, 'q'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 8);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 }

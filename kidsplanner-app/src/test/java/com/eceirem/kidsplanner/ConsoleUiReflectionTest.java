@@ -23,6 +23,10 @@ import org.junit.jupiter.api.Test;
 
 public class ConsoleUiReflectionTest {
 
+  private static PrintStream silentOut() throws Exception {
+    return new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8.name());
+  }
+
   private static Object callPrivateStatic(Class<?> clazz, String name, Class<?>[] paramTypes, Object... args) throws Exception {
     Method m = clazz.getDeclaredMethod(name, paramTypes);
     m.setAccessible(true);
@@ -189,7 +193,7 @@ public class ConsoleUiReflectionTest {
     // Trigger the 0x9B branch in readMenuChoice (public path).
     byte[] seq = new byte[] {(byte) 0x9B, '6', '~', '\n'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 16);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "C", "D", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "C", "D", "Exit"), null);
     // At least it should not crash; selection must be within bounds.
     assertTrue(idx >= 0 && idx < 5);
   }
@@ -200,7 +204,7 @@ public class ConsoleUiReflectionTest {
     // Feed: 224, 1 (unknown scan), then 'q' => should quit to last.
     byte[] seq = new byte[] {(byte) 224, (byte) 1, (byte) 'q'};
     PushbackInputStream in = new PushbackInputStream(new ByteArrayInputStream(seq), 16);
-    int idx = ConsoleUi.readMenuChoice(in, System.out, "Menu", Arrays.asList("A", "B", "Exit"), null);
+    int idx = ConsoleUi.readMenuChoice(in, silentOut(), "Menu", Arrays.asList("A", "B", "Exit"), null);
     assertEquals(2, idx);
   }
 

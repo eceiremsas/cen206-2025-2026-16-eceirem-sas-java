@@ -113,18 +113,6 @@
 			<version>5.10.2</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>1.20.6</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>mysql</artifactId>
-			<version>1.20.6</version>
-			<scope>test</scope>
-		</dependency>
 		<!-- SLF4J API -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -178,6 +166,7 @@
 					<systemPropertyVariables>
 						<kidsplanner.text.mode>true</kidsplanner.text.mode>
 					</systemPropertyVariables>
+					<!-- MySQL integration tests connect to docker-compose MySQL on localhost:3306 -->
 				</configuration>
 			</plugin>
 			

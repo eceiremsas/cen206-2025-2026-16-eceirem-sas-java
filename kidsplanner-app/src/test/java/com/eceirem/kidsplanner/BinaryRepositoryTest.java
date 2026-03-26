@@ -200,6 +200,51 @@ public class BinaryRepositoryTest {
     cleanup(file);
   }
 
+  @Test
+  public void testConstructorCalculatesNextIdIgnoresNullKey() throws java.io.IOException {
+    String file = "target/test-repo-nextid-null-key.bin";
+    cleanup(file);
+    Activity existing = sample("Existing", 8, 9);
+    existing.setId(7);
+    Map<Integer, Activity> seeded = new HashMap<Integer, Activity>();
+    seeded.put(existing.getId(), existing);
+    seeded.put(null, existing);
+    try (ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(file))) {
+      output.writeObject(seeded);
+    }
+
+    BinaryRepository<Activity> repository = new BinaryRepository<Activity>(file);
+    Activity next = sample("Next", 10, 11);
+    repository.save(next);
+
+    assertEquals(Integer.valueOf(8), next.getId());
+    cleanup(file);
+  }
+
+  @Test
+  public void testConstructorCalculatesNextIdIgnoresLowerId() throws java.io.IOException {
+    String file = "target/test-repo-nextid-lower-id.bin";
+    cleanup(file);
+    Activity a1 = sample("A1", 8, 9);
+    a1.setId(7);
+    Activity a2 = sample("A2", 9, 10);
+    a2.setId(3);
+    // Use insertion-ordered map so calculateNextId sees 7 then 3 (covers the <= max branch).
+    Map<Integer, Activity> seeded = new java.util.LinkedHashMap<Integer, Activity>();
+    seeded.put(a1.getId(), a1);
+    seeded.put(a2.getId(), a2);
+    try (ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(file))) {
+      output.writeObject(seeded);
+    }
+
+    BinaryRepository<Activity> repository = new BinaryRepository<Activity>(file);
+    Activity next = sample("Next", 10, 11);
+    repository.save(next);
+
+    assertEquals(Integer.valueOf(8), next.getId());
+    cleanup(file);
+  }
+
   /**
    * @brief Verifies constructor tolerates unreadable serialized class by starting empty.
    *

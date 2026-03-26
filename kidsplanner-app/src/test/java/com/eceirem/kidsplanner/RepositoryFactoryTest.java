@@ -12,23 +12,25 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * @class RepositoryFactoryTest
  * @brief Unit tests for RepositoryFactory.
  * @details This class tests only RepositoryFactory behavior.
  */
-@Testcontainers
 public class RepositoryFactoryTest {
-  @Container
-  private static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0")
-      .withDatabaseName("kidsplanner")
-      .withUsername("root")
-      .withPassword("kidsplanner");
+  private static final String JDBC_URL =
+      "jdbc:mysql://localhost:3306/kidsplanner?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+          + "&connectTimeout=2000&socketTimeout=2000";
+  private static final String USER = "root";
+  private static final String PASS = "kidsplanner";
+
+  @BeforeAll
+  public static void startMysql() {
+    DockerComposeMysql.ensureRunning();
+  }
 
   /**
    * @brief Restores binary storage and removes sqlite test file.
@@ -81,9 +83,17 @@ public class RepositoryFactoryTest {
    */
   @Test
   public void testCreateActivityRepositoryWithMysqlReturnsRepositoryWhenServerUp() {
-    RepositoryFactory.configureMysql(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
+    RepositoryFactory.configureMysql(JDBC_URL, USER, PASS);
     RepositoryFactory.setActiveStorage(StorageType.MYSQL);
     IRepository<Activity> repository = RepositoryFactory.createActivityRepository();
+    assertNotNull(repository);
+  }
+
+  @Test
+  public void testCreateKidRepositoryWithMysqlReturnsRepositoryWhenServerUp() {
+    RepositoryFactory.configureMysql(JDBC_URL, USER, PASS);
+    RepositoryFactory.setActiveStorage(StorageType.MYSQL);
+    IRepository<Kid> repository = RepositoryFactory.createKidRepository();
     assertNotNull(repository);
   }
 

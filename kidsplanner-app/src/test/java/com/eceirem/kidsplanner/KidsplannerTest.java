@@ -6,6 +6,7 @@
 package com.eceirem.kidsplanner;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -39,6 +40,13 @@ public class KidsplannerTest {
     Files.deleteIfExists(Paths.get("kidsplanner-kids.bin"));
     Files.deleteIfExists(Paths.get("kidsplanner-consent.flag"));
     Files.deleteIfExists(Paths.get("kidsplanner.db"));
+    // Reset factory globals to avoid leaking state between tests.
+    RepositoryFactory.setActiveStorage(StorageType.BINARY);
+    RepositoryFactory.configureSqliteUrl("jdbc:sqlite:kidsplanner.db");
+    RepositoryFactory.configureMysql(
+        "jdbc:mysql://localhost:3306/kidsplanner?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
+        "root",
+        "kidsplanner");
   }
 
   /**
@@ -360,6 +368,105 @@ public class KidsplannerTest {
     assertTrue(output.contains("Application closed."));
   }
 
+  @Test
+  public void testStorageCommandWithoutArgPrintsUsage() throws java.io.IOException {
+    String output = runWithInput("storage\nexit\n");
+    assertTrue(output.contains("Usage: storage binary|sqlite|mysql"));
+  }
+
+  @Test
+  public void testStorageCommandWithInvalidBackendPrintsError() throws java.io.IOException {
+    String output = runWithInput("storage nope\nexit\n");
+    assertTrue(output.contains("Invalid storage. Use binary, sqlite, or mysql."));
+  }
+
+  @Test
+  public void testStorageCommandSwitchesSqliteAndPrintsTargets() throws java.io.IOException {
+    String output = runWithInput("storage sqlite\nexit\n");
+    assertTrue(output.contains("Storage updated: SQLITE"));
+    assertTrue(output.toLowerCase().contains("jdbc"));
+  }
+
+  @Test
+  public void testKidAddListAndDeleteCommandsWork() throws java.io.IOException {
+    String input = ""
+        + "kid-add\n"
+        + "Alice\n"
+        + "2018\n"
+        + "note\n"
+        + "kid-list\n"
+        + "kid-delete\n"
+        + "1\n"
+        + "kid-list\n"
+        + "exit\n";
+    String output = runWithInput(input);
+    assertTrue(output.contains("Kid added. ID ="));
+    assertTrue(output.contains("--- Kid list ---"));
+    assertTrue(output.contains("Kid deleted (if it existed)."));
+  }
+
+  @Test
+  public void testTextModeDeleteWithNonNumberPrintsNumberFormatError() throws java.io.IOException {
+    String output = runWithInput("delete\nabc\nexit\n");
+    assertTrue(output.contains("Error: invalid number format."));
+  }
+
+  @Test
+  public void testTextModeAddWithUnknownKidIdPrintsKidNotFoundError() throws java.io.IOException {
+    // add activity -> kid id 999 not found => ValidationException caught in text loop
+    String input = ""
+        + "add\n"
+        + "999\n"
+        + "T\n"
+        + "2026-03-25\n"
+        + "09:00\n"
+        + "10:00\n"
+        + "STUDY\n"
+        + "\n"
+        + "\n"
+        + "exit\n";
+    String output = runWithInput(input);
+    assertTrue(output.contains("Error: Kid not found"));
+  }
+
+  @Test
+  public void testScannerConstructorRunsTextMode() throws Exception {
+    java.util.Scanner sc = new java.util.Scanner(new java.io.ByteArrayInputStream("exit\n".getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+        java.nio.charset.StandardCharsets.UTF_8.name());
+    java.io.PrintStream originalOut = System.out;
+    java.io.ByteArrayOutputStream outBytes = new java.io.ByteArrayOutputStream();
+    java.io.PrintStream out = new java.io.PrintStream(outBytes, true, java.nio.charset.StandardCharsets.UTF_8.name());
+    try {
+      System.setOut(out);
+      Kidsplanner kp = new Kidsplanner(sc, false);
+      kp.run();
+    } finally {
+      System.setOut(originalOut);
+      out.close();
+      sc.close();
+    }
+    String printed = outBytes.toString(java.nio.charset.StandardCharsets.UTF_8.name());
+    assertTrue(printed.contains("Application closed."));
+  }
+
+  @Test
+  public void testScannerConstructorRejectsNullScannerAndMenuModeTrue() {
+    assertThrows(IllegalArgumentException.class, () -> new Kidsplanner(null, false));
+    assertThrows(IllegalArgumentException.class,
+        () -> new Kidsplanner(new java.util.Scanner(new java.io.ByteArrayInputStream(new byte[0])), true));
+  }
+
+  @Test
+  public void testDetectMenuModeCanBeForcedForDeterministicCoverage() {
+    System.clearProperty(Kidsplanner.PROP_TEXT_MODE);
+    System.setProperty(Kidsplanner.PROP_FORCE_MENU, "true");
+    try {
+      assertTrue(Kidsplanner.detectMenuMode());
+    } finally {
+      System.clearProperty(Kidsplanner.PROP_FORCE_MENU);
+    }
+  }
+
   /**
    * @brief Runs planner with provided input and returns captured output.
    *
@@ -377,10 +484,15 @@ public class KidsplannerTest {
     try {
       System.setIn(redirectedIn);
       System.setOut(redirectedOut);
+      // Force non-interactive deterministic behavior in tests.
+      System.setProperty(Kidsplanner.PROP_TEXT_MODE, "true");
+      System.setProperty(Kidsplanner.PROP_DISABLE_JLINE, "true");
       new Kidsplanner().run();
     } finally {
       System.setIn(originalIn);
       System.setOut(originalOut);
+      System.clearProperty(Kidsplanner.PROP_TEXT_MODE);
+      System.clearProperty(Kidsplanner.PROP_DISABLE_JLINE);
       redirectedOut.close();
     }
     return capturedOut.toString(StandardCharsets.UTF_8.name());

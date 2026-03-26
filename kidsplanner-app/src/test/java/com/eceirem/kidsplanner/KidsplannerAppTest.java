@@ -59,10 +59,15 @@ public class KidsplannerAppTest {
     try {
       System.setIn(redirectedIn);
       System.setOut(redirectedOut);
+      // Force non-interactive deterministic behavior in tests.
+      System.setProperty(Kidsplanner.PROP_TEXT_MODE, "true");
+      System.setProperty(Kidsplanner.PROP_DISABLE_JLINE, "true");
       KidsplannerApp.main(new String[0]);
     } finally {
       System.setIn(originalIn);
       System.setOut(originalOut);
+      System.clearProperty(Kidsplanner.PROP_TEXT_MODE);
+      System.clearProperty(Kidsplanner.PROP_DISABLE_JLINE);
       redirectedOut.close();
     }
 
