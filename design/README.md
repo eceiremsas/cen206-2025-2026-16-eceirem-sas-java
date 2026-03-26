@@ -13,6 +13,8 @@ This folder contains required midterm design documents.
 - Deployment (draw.io): `design/drawio/deployment.drawio` (+ export `deployment.png`)
 - ProjectLibre: `design/projectlibre/project.xml`
 - Figma exports: `design/figma/` (export `console-wireframes.pdf` or PNGs)
+  - Figma design file: [Kids Activity Planner (Figma)](https://www.figma.com/design/xyGwKBPQd20XFf0CkTvYSa/Untitled?node-id=0-1&t=9lNvjFMNXORTH9G0-1)
+  - Figma prototype: [Kids Activity Planner (Prototype)](https://www.figma.com/proto/xyGwKBPQd20XFf0CkTvYSa/Untitled?node-id=0-1&t=9lNvjFMNXORTH9G0-1)
 
 ## Notes
 
