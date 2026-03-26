@@ -1,5 +1,5 @@
 /**
- * @file MysqlRepository.java
+ * @file MySqlRepository.java
  * @brief MySQL {@link IRepository} for {@link Kid} and {@link Activity}.
  */
 package com.eceirem.kidsplanner;
@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * MySQL implementation of {@link IRepository} for {@link Kid} and {@link Activity}.
  */
-public final class MysqlRepository<T extends HasId<Integer>> implements IRepository<T> {
+public final class MySqlRepository<T extends HasId<Integer>> implements IRepository<T> {
 
   /** Row set this repository instance reads and writes. */
   public enum EntityKind {
@@ -45,7 +45,7 @@ public final class MysqlRepository<T extends HasId<Integer>> implements IReposit
    * @param password DB password
    * @param kind kid or activity repository
    */
-  public MysqlRepository(String jdbcUrl, String username, String password, EntityKind kind) {
+  public MySqlRepository(String jdbcUrl, String username, String password, EntityKind kind) {
     this.jdbcUrl = jdbcUrl;
     this.username = username;
     this.password = password;
