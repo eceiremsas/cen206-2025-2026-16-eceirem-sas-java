@@ -177,7 +177,6 @@
 					<excludes>
 						<!-- Exclude interactive controller/UI and DB integration from unit coverage. -->
 						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
-						<exclude>com/eceirem/kidsplanner/ConsoleUi*</exclude>
 						<!-- Exclude persistence backends/factory (I/O heavy) from unit coverage. -->
 						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
 						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>
