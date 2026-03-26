@@ -77,6 +77,9 @@ public final class RepositoryFactory {
 
   /** @return {@link Kid} repository for current {@link StorageType} */
   public static IRepository<Kid> createKidRepository() {
+    if (activeStorage == null) {
+      throw new RepositoryException("Unsupported storage type: null");
+    }
     switch (activeStorage) {
       case BINARY:
         return new BinaryRepository<Kid>("kidsplanner-kids.bin");
@@ -90,6 +93,9 @@ public final class RepositoryFactory {
 
   /** @return {@link Activity} repository for current {@link StorageType} */
   public static IRepository<Activity> createActivityRepository() {
+    if (activeStorage == null) {
+      throw new RepositoryException("Unsupported storage type: null");
+    }
     switch (activeStorage) {
       case BINARY:
         return new BinaryRepository<Activity>("kidsplanner-activities.bin");
