@@ -7,7 +7,9 @@ package com.eceirem.kidsplanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -123,5 +125,19 @@ public class RepositoryFactoryTest {
   public void testParseStorageTypeHandlesMysqlKeyword() {
     StorageType parsed = RepositoryFactory.parseStorageTypeOrNull("mysql");
     assertEquals(StorageType.MYSQL, parsed);
+  }
+
+  @Test
+  public void testCreateRepositoriesThrowWhenActiveStorageIsNull() throws Exception {
+    Field active = RepositoryFactory.class.getDeclaredField("activeStorage");
+    active.setAccessible(true);
+    Object backup = active.get(null);
+    try {
+      active.set(null, null);
+      assertThrows(RepositoryException.class, RepositoryFactory::createKidRepository);
+      assertThrows(RepositoryException.class, RepositoryFactory::createActivityRepository);
+    } finally {
+      active.set(null, backup);
+    }
   }
 }
