@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -33,7 +35,13 @@ public class PrivacyConsentInteractiveTest {
   public void menuModeWritesFlagOnYes() throws Exception {
     assertFalse(PrivacyConsent.hasConsentFlag());
     ByteArrayInputStream in = new ByteArrayInputStream("\n".getBytes(StandardCharsets.UTF_8));
-    PrivacyConsent.ensureInteractiveConsent(null, in, true);
+    PrintStream originalOut = System.out;
+    try {
+      System.setOut(new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8.name()));
+      PrivacyConsent.ensureInteractiveConsent(null, in, true);
+    } finally {
+      System.setOut(originalOut);
+    }
     assertTrue(PrivacyConsent.hasConsentFlag());
   }
 
@@ -41,7 +49,13 @@ public class PrivacyConsentInteractiveTest {
   public void menuModeThrowsOnNoAndDoesNotWriteFlag() throws Exception {
     assertFalse(PrivacyConsent.hasConsentFlag());
     ByteArrayInputStream in = new ByteArrayInputStream("\t\n".getBytes(StandardCharsets.UTF_8));
-    assertThrows(RepositoryException.class, () -> PrivacyConsent.ensureInteractiveConsent(null, in, true));
+    PrintStream originalOut = System.out;
+    try {
+      System.setOut(new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8.name()));
+      assertThrows(RepositoryException.class, () -> PrivacyConsent.ensureInteractiveConsent(null, in, true));
+    } finally {
+      System.setOut(originalOut);
+    }
     assertFalse(PrivacyConsent.hasConsentFlag());
   }
 

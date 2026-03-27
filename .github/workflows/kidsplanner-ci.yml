@@ -1,0 +1,42 @@
+name: kidsplanner-app CI
+
+on:
+  push:
+    paths:
+      - "kidsplanner-app/**"
+      - ".github/workflows/kidsplanner-ci.yml"
+  pull_request:
+    paths:
+      - "kidsplanner-app/**"
+      - ".github/workflows/kidsplanner-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: kidsplanner
+          MYSQL_DATABASE: kidsplanner
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pkidsplanner"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Run tests (MySQL via service container)
+        working-directory: kidsplanner-app
+        run: mvn -q test
+

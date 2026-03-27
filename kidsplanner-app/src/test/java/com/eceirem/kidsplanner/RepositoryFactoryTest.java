@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -21,6 +21,16 @@ import org.junit.jupiter.api.Test;
  * @details This class tests only RepositoryFactory behavior.
  */
 public class RepositoryFactoryTest {
+  private static final String JDBC_URL =
+      "jdbc:mysql://localhost:3306/kidsplanner?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+          + "&connectTimeout=2000&socketTimeout=2000";
+  private static final String USER = "root";
+  private static final String PASS = "kidsplanner";
+
+  @BeforeAll
+  public static void startMysql() {
+    DockerComposeMysql.ensureRunning();
+  }
 
   /**
    * @brief Restores binary storage and removes sqlite test file.
@@ -73,13 +83,18 @@ public class RepositoryFactoryTest {
    */
   @Test
   public void testCreateActivityRepositoryWithMysqlReturnsRepositoryWhenServerUp() {
+    RepositoryFactory.configureMysql(JDBC_URL, USER, PASS);
     RepositoryFactory.setActiveStorage(StorageType.MYSQL);
-    try {
-      IRepository<Activity> repository = RepositoryFactory.createActivityRepository();
-      assertNotNull(repository);
-    } catch (RepositoryException ex) {
-      Assumptions.assumeTrue(false, "MySQL erisilemedi (Docker kapali olabilir): " + ex.getMessage());
-    }
+    IRepository<Activity> repository = RepositoryFactory.createActivityRepository();
+    assertNotNull(repository);
+  }
+
+  @Test
+  public void testCreateKidRepositoryWithMysqlReturnsRepositoryWhenServerUp() {
+    RepositoryFactory.configureMysql(JDBC_URL, USER, PASS);
+    RepositoryFactory.setActiveStorage(StorageType.MYSQL);
+    IRepository<Kid> repository = RepositoryFactory.createKidRepository();
+    assertNotNull(repository);
   }
 
   /**

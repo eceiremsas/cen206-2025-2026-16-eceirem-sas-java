@@ -166,24 +166,14 @@
 					<systemPropertyVariables>
 						<kidsplanner.text.mode>true</kidsplanner.text.mode>
 					</systemPropertyVariables>
+					<!-- MySQL integration tests connect to docker-compose MySQL on localhost:3306 -->
 				</configuration>
 			</plugin>
 			
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.7</version>
-				<configuration>
-					<excludes>
-						<!-- Exclude interactive controller/UI and DB integration from unit coverage. -->
-						<exclude>com/eceirem/kidsplanner/Kidsplanner*</exclude>
-						<!-- Exclude persistence backends/factory (I/O heavy) from unit coverage. -->
-						<exclude>com/eceirem/kidsplanner/RepositoryFactory*</exclude>
-						<exclude>com/eceirem/kidsplanner/BinaryRepository*</exclude>
-						<exclude>com/eceirem/kidsplanner/SqliteRepository*</exclude>
-						<exclude>com/eceirem/kidsplanner/MySqlRepository*</exclude>
-					</excludes>
-				</configuration>
+				<version>0.8.12</version>
 				<executions>
 					<execution>
 						<goals>
